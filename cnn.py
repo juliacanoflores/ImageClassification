@@ -6,6 +6,10 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from tempfile import TemporaryDirectory
+import wandb
+
+# Solo esta línea de configuración
+os.environ["WANDB_INIT_TIMEOUT"] = "300"
 
 def get_default_device():
     """Return CUDA if available, otherwise CPU."""
@@ -63,7 +67,10 @@ class CNN(nn.Module):
                     optimizer, 
                     criterion, 
                     epochs, 
-                    nepochs_to_save=10):
+                    nepochs_to_save=10,
+                    use_wandb=False,
+                    wandb_config=None,
+                    architecture=None):
         """Train the model and save the best one based on validation accuracy.
         
         Args:
@@ -73,10 +80,33 @@ class CNN(nn.Module):
             criterion: Loss function to use during training.
             epochs: Number of epochs to train the model.
             nepochs_to_save: Number of epochs to wait before saving the model.
+            use_wandb: Whether to log to Weights & Biases.
+            wandb_config: Dictionary with hyperparameters to log in wandb.
+            architecture: Name of the model architecture. If None, detected automatically.
 
         Returns:
             history: A dictionary with the training history.
         """
+        # Initialize wandb if enabled
+        if use_wandb:
+            if wandb_config is None:
+                wandb_config = {}
+            # Detect architecture automatically if not provided
+            if architecture is None:
+                architecture = self.base_model.__class__.__name__
+            wandb.init(
+                entity="javi_paula_julia",
+                project="image-classification",
+                mode="online",
+                config={
+                    "learning_rate": optimizer.defaults['lr'],
+                    "epochs": epochs,
+                    "batch_size": train_loader.batch_size,
+                    "architecture": architecture,
+                    **wandb_config
+                }
+            )
+        
         with TemporaryDirectory() as temp_dir:
             best_model_path = os.path.join(temp_dir, 'best_model.pt')
             best_accuracy = 0.0
@@ -128,6 +158,16 @@ class CNN(nn.Module):
                         f'Validation Loss: {valid_loss:.4f}, '
                         f'Validation Accuracy: {valid_accuracy:.4f}')
                 
+                # Log metrics to wandb
+                if use_wandb:
+                    wandb.log({
+                        "train/loss": train_loss,
+                        "train/accuracy": train_accuracy,
+                        "valid/loss": valid_loss,
+                        "valid/accuracy": valid_accuracy,
+                        "epoch": epoch + 1
+                    })
+                
                 if epoch % nepochs_to_save == 0:
                     if valid_accuracy > best_accuracy:
                         best_accuracy = valid_accuracy
@@ -135,6 +175,11 @@ class CNN(nn.Module):
                 
             torch.save(self.state_dict(), best_model_path)    
             self.load_state_dict(torch.load(best_model_path, map_location=self.device))
+            
+            # Finish wandb run
+            if use_wandb:
+                wandb.finish()
+            
             return history
         
     def predict(self, data_loader):

@@ -1,5 +1,8 @@
 # Dataset
 dataset
+.venv
+wandb
+wandb_logs
 
 
 
