@@ -1,0 +1,31 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.13",
+  "startedAt": "2026-04-09T18:16:51.278505Z",
+  "program": "c:\\Users\\julia\\OneDrive\\Escritorio\\ICAI\\Segundo Cuatrimestre\\Machine Learning II\\Practicas\\ImageClassification\\03TransferLearning.ipynb",
+  "git": {
+    "remote": "git@github.com:juliacanoflores/ImageClassification.git",
+    "commit": "23717890bf0cd52df213fdbf89bcb8cee76b39de"
+  },
+  "email": "202517646@alu.comillas.edu",
+  "root": "c:\\Users\\julia\\OneDrive\\Escritorio\\ICAI\\Segundo Cuatrimestre\\Machine Learning II\\Practicas\\ImageClassification",
+  "host": "DESKTOP-R39RCEK",
+  "username": "julia",
+  "executable": "c:\\Users\\julia\\anaconda3\\envs\\db_lab\\python.exe",
+  "codePathLocal": "03TransferLearning.ipynb",
+  "cpu_count": 6,
+  "cpu_count_logical": 12,
+  "disk": {
+    "/": {
+      "total": "372875718656",
+      "used": "357357346816"
+    }
+  },
+  "memory": {
+    "total": "34185469952"
+  },
+  "cpu": {
+    "count": 6,
+    "countLogical": 12
+  }
+}

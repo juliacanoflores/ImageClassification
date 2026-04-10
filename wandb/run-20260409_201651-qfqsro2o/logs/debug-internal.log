@@ -1,0 +1,18 @@
+{"time":"2026-04-09T20:16:51.2797095+02:00","level":"INFO","msg":"using version","core version":"0.18.1"}
+{"time":"2026-04-09T20:16:51.2797095+02:00","level":"INFO","msg":"created symlink","path":"c:\\Users\\julia\\OneDrive\\Escritorio\\ICAI\\Segundo Cuatrimestre\\Machine Learning II\\Practicas\\ImageClassification\\wandb\\run-20260409_201651-qfqsro2o\\logs\\debug-core.log"}
+{"time":"2026-04-09T20:16:51.2802823+02:00","level":"INFO","msg":"using version","core version":"0.18.1"}
+{"time":"2026-04-09T20:16:51.2808832+02:00","level":"INFO","msg":"created symlink","path":"c:\\Users\\julia\\OneDrive\\Escritorio\\ICAI\\Segundo Cuatrimestre\\Machine Learning II\\Practicas\\ImageClassification\\wandb\\run-20260409_201651-qfqsro2o\\logs\\debug-core.log"}
+{"time":"2026-04-09T20:16:51.2945076+02:00","level":"INFO","msg":"created new stream","id":"qfqsro2o"}
+{"time":"2026-04-09T20:16:51.2945076+02:00","level":"INFO","msg":"stream: started","id":"qfqsro2o"}
+{"time":"2026-04-09T20:16:51.2945076+02:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:16:51.2945076+02:00","level":"INFO","msg":"sender: started","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:16:51.2945076+02:00","level":"INFO","msg":"handler: started","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:16:51.7755015+02:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2026-04-09T20:16:51.778293+02:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2026-04-09T20:22:33.1622694+02:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2026-04-09T20:22:33.1622694+02:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2026-04-09T20:22:36.5313179+02:00","level":"INFO","msg":"stream: closing","id":"qfqsro2o"}
+{"time":"2026-04-09T20:22:36.5313179+02:00","level":"INFO","msg":"handler: closed","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:22:36.5313179+02:00","level":"INFO","msg":"sender: closed","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:22:36.5313179+02:00","level":"INFO","msg":"writer: Close: closed","stream_id":{"value":"qfqsro2o"}}
+{"time":"2026-04-09T20:22:36.5313179+02:00","level":"INFO","msg":"stream: closed","id":"qfqsro2o"}
