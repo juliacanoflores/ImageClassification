@@ -1,7 +1,12 @@
 # Dataset
 dataset
 .venv
+# Dataset
+dataset
+.venv
 wandb_logs
+models
+
 
 
 
