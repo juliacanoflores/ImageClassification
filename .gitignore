@@ -1,11 +1,14 @@
 # Dataset
-dataset
-.venv
-# Dataset
-dataset
-.venv
-wandb_logs
-models
+dataset/
+
+# Python environment
+.venv/
+
+# Logs
+wandb_logs/
+
+# Trained model artifacts
+models/
 
 
 
