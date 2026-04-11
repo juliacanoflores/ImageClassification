@@ -207,14 +207,6 @@ How to access the API docs:
 - [ ] Docker containerization
 - [ ] Cloud deployment (AWS, Azure, Google Cloud)
 
-## License
-
-This project is for educational purposes.
-
-## Author
-
-Created as part of Machine Learning II course at ICAI.
-
 ## Troubleshooting
 
 ### Port Already in Use
@@ -251,3 +243,15 @@ kill -9 <PID>
 ---
 
 **Need help?** Check the troubleshooting section or review the code comments in `app.py` and `fastapi_backend.py`.
+
+## License
+
+This project is for educational purposes.
+
+## Author
+
+Created as part of Machine Learning II course at ICAI.
+Contributors:
+  - Javier Arroyo García - @javiarroyog
+  - Julia Cano Flores - @juliacanoflores
+  - Paula Durá Fuster - @paauladura
