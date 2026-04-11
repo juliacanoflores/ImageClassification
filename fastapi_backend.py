@@ -1,14 +1,15 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+import base64
+import io
+import os
+
 import torch
 import torch.nn as nn
 import torchvision
-from torchvision import transforms
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-import io
-import os
-import base64
+from torchvision import transforms
 
 # App configuration
 app = FastAPI(title="Scene Classifier API")
@@ -93,6 +94,30 @@ def load_model() -> SceneClassifier | None:
         return None
 
 
+def _decode_base64_image(image_str: str) -> torch.Tensor:
+    """Decode base64 image and convert it to a model-ready tensor."""
+    image_bytes = base64.b64decode(image_str)
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    return transform(image).unsqueeze(0).to(DEVICE)
+
+
+def _predict_topk(image_tensor: torch.Tensor, k: int = 1) -> list[dict]:
+    """Run inference and return top-k predictions with confidences."""
+    k = max(1, min(k, len(CLASSES)))
+    with torch.no_grad():
+        outputs = MODEL(image_tensor)
+        probabilities = torch.softmax(outputs, dim=1)
+        confidences, indices = torch.topk(probabilities, k=k, dim=1)
+
+    predictions = []
+    for confidence, idx in zip(confidences[0].tolist(), indices[0].tolist()):
+        predictions.append({
+            "label": CLASSES[idx],
+            "confidence": round(float(confidence), 4)
+        })
+    return predictions
+
+
 # Load model at startup
 MODEL = load_model()
 
@@ -103,6 +128,40 @@ async def health_check():
     return {
         "status": "ok",
         "model": "ConvNeXT-Base" if MODEL else "Not loaded"
+    }
+
+
+@app.get("/health")
+async def health():
+    """Detailed health endpoint for service and model readiness."""
+    return {
+        "status": "ok",
+        "model_loaded": MODEL is not None,
+        "device": str(DEVICE)
+    }
+
+
+@app.get("/classes")
+async def classes():
+    """Return the list of class labels used by the model."""
+    return {
+        "status": "ok",
+        "num_classes": len(CLASSES),
+        "classes": CLASSES
+    }
+
+
+@app.get("/model-info")
+async def model_info():
+    """Return metadata about the loaded model and runtime config."""
+    return {
+        "status": "ok",
+        "architecture": "ConvNeXT-Base",
+        "input_size": [IMAGE_SIZE, IMAGE_SIZE],
+        "num_classes": len(CLASSES),
+        "model_path": MODEL_PATH,
+        "model_loaded": MODEL is not None,
+        "device": str(DEVICE)
     }
 
 
@@ -128,20 +187,14 @@ async def predict(data: dict):
                 "confidence": 0.0,
                 "message": "No image data provided"
             }
-        
-        image_bytes = base64.b64decode(image_str)
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        image_tensor = transform(image).unsqueeze(0).to(DEVICE)
-        
-        with torch.no_grad():
-            outputs = MODEL(image_tensor)
-            probabilities = torch.softmax(outputs, dim=1)
-            confidence, predicted_idx = torch.max(probabilities, 1)
+
+        image_tensor = _decode_base64_image(image_str)
+        top_prediction = _predict_topk(image_tensor, k=1)[0]
         
         return {
             "status": "success",
-            "label": CLASSES[predicted_idx.item()],
-            "confidence": round(confidence.item(), 4),
+            "label": top_prediction["label"],
+            "confidence": top_prediction["confidence"],
             "filename": filename
         }
     
@@ -150,6 +203,46 @@ async def predict(data: dict):
             "status": "error",
             "label": "Error",
             "confidence": 0.0,
+            "message": str(e)
+        }
+
+
+@app.post("/predict-topk")
+async def predict_topk(data: dict):
+    """Predict top-k classes from Base64 encoded image."""
+    if MODEL is None:
+        return {
+            "status": "error",
+            "predictions": [],
+            "message": "Model not loaded"
+        }
+
+    try:
+        image_str = data.get("image", "")
+        filename = data.get("filename", "image.jpg")
+        k = int(data.get("k", 3))
+
+        if not image_str:
+            return {
+                "status": "error",
+                "predictions": [],
+                "message": "No image data provided"
+            }
+
+        image_tensor = _decode_base64_image(image_str)
+        predictions = _predict_topk(image_tensor, k=k)
+
+        return {
+            "status": "success",
+            "filename": filename,
+            "k": len(predictions),
+            "predictions": predictions
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "predictions": [],
             "message": str(e)
         }
 

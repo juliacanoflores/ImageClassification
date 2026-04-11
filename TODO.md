@@ -2,12 +2,16 @@
 
 
 ## Por hacer
-- [ ] Probar un modelo preentrenado (ResNet, VGG, etc.) | Responsable:
-- [ ] Implementar un modelo personalizado | Responsable:
-- [ ] Desplegar API | Responsable:
+- [ ] Customer context | Responsable:
+- [ ] Modeling approach | Responsable:
+- [ ] Experimentation process (W&B) | Responsable:
+- [ ] Performance metrics per output class | Responsable:
+- [ ] API documentation | Responsable:
 
 ## En progreso
 - [ ] (Añadir tarea aquí) | Responsable: 
 
 ## Completado
 - [x] Linkar WeightAndBiases al proyecto | Responsable: Julia
+- [x] Conectar el modelo a la API | Responsable: Julia
+- [x] Conectar la API al frontend | Responsable: Julia

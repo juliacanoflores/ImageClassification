@@ -2,7 +2,7 @@
 
 A web application that classifies images into 15 different scene categories using a ConvNeXT deep learning model trained with transfer learning.
 
-## 🏗️ Architecture
+## Architecture
 
 The application uses a **microservices architecture** with two independent services:
 
@@ -23,11 +23,11 @@ The application uses a **microservices architecture** with two independent servi
 └─────────────────────────────────────────┘
 ```
 
-## 🎯 Supported Scene Classes
+## Supported Scene Classes
 
 Bedroom, Coast, Forest, Highway, Industrial, Inside city, Kitchen, Living room, Mountain, Office, Open country, Store, Street, Suburb, Tall building
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -70,14 +70,16 @@ Local URL: http://localhost:8501
 - Go to `http://localhost:8501`
 - Start classifying images!
 
-## 🔧 How It Works
+## How It Works
 
 ### Frontend (Streamlit)
 
 - **Image Upload**: User selects or uploads an image
 - **Encoding**: Image is converted to base64 (text-friendly format)
-- **API Call**: Image is sent to the backend via HTTP POST
-- **Display**: Result is shown with prediction and confidence
+- **API Calls**: Frontend checks backend status and model metadata before inference
+- **Info Panel**: A sidebar panel shows backend reachability, model loaded status, device, architecture, and number of classes
+- **Top-K Mode**: Optional Top-K predictions with ranked probabilities
+- **Display**: Result is shown as top-1 metric and optional Top-K table
 
 ### Backend (FastAPI)
 
@@ -96,7 +98,7 @@ Local URL: http://localhost:8501
 - **Input Size**: 224×224 RGB images
 - **Output**: 15 scene classes with confidence scores
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ImageClassification/
@@ -115,7 +117,7 @@ ImageClassification/
 └── wandb/                        # Training logs (optional)
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### API Settings
 
@@ -137,10 +139,83 @@ uvicorn.run(app, host="0.0.0.0", port=8000)  # Change 8000 to your port
 
 **Frontend (app.py)**:
 ```python
-API_URL = "http://localhost:8000/predict"  # Update if backend port changed
+API_BASE_URL = "http://localhost:8000"  # Update if backend port changed
 ```
 
-## 🐛 Troubleshooting
+## Dependencies
+
+- **streamlit**: Web UI framework
+- **fastapi**: Backend API framework
+- **uvicorn**: ASGI server for FastAPI
+- **torch**: Deep learning framework
+- **torchvision**: Computer vision models and utilities
+- **pillow**: Image processing
+- **requests**: HTTP client for frontend-backend communication
+
+See `requirements.txt` for exact versions.
+
+## Model Training
+
+This model was trained using transfer learning:
+
+1. **Backbone**: ConvNeXT-Base pretrained on ImageNet
+2. **Head**: Custom linear classifier with 15 outputs
+3. **Training**: 8 epochs on the scene classification dataset
+4. **Validation**: Tested on held-out validation set
+
+The model achieves high accuracy on scene classification tasks because:
+- ConvNeXT learns good visual features from ImageNet
+- Fine-tuning adapts these features to scene understanding
+- 15 distinct scene categories have different visual characteristics
+
+## API Documentation
+
+How to access the API docs:
+
+1. Start the backend:
+   ```bash
+   python fastapi_backend.py
+   ```
+2. Open Swagger UI in your browser: [http://localhost:8000/docs](http://localhost:8000/docs)
+3. For a static markdown reference, check: [docs/api.md](docs/api.md)
+
+- Full endpoint reference: [docs/api.md](docs/api.md)
+- Interactive Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+## Streamlit Features
+
+- Sidebar backend monitor (reachable, model loaded, device, architecture, classes)
+- Toggle to switch between Top-1 and Top-K inference mode
+- Slider to control K value in Top-K mode
+- Ranked Top-K table with confidence percentages
+- Works for both uploaded images and random validation images
+
+## Tips & Tricks
+
+- **Faster inference**: Use a GPU - predictions are 5-10x faster
+- **Batch processing**: You can modify the backend to process multiple images
+- **Confidence threshold**: Adjust the UI to only show predictions above a certain confidence
+- **Dataset exploration**: Check the `dataset/validation/` folder to see example images
+
+## Future Improvements
+
+- [ ] Support for batch image processing
+- [ ] Model download automation
+- [ ] Different model architectures (ResNet, EfficientNet)
+- [ ] Real-time webcam classification
+- [ ] Explainability features (attention maps, saliency maps)
+- [ ] Docker containerization
+- [ ] Cloud deployment (AWS, Azure, Google Cloud)
+
+## License
+
+This project is for educational purposes.
+
+## Author
+
+Created as part of Machine Learning II course at ICAI.
+
+## Troubleshooting
 
 ### Port Already in Use
 
@@ -163,112 +238,15 @@ kill -9 <PID>
 1. Check if backend is running on port 8000
 2. Verify model file exists at `models/convnext_base-8epoch.pt`
 3. Ensure GPU/CPU is available:
-   ```bash
-   python -c "import torch; print(torch.cuda.is_available())"
-   ```
+  ```bash
+  python -c "import torch; print(torch.cuda.is_available())"
+  ```
 
 ### Streamlit Not Starting
 
 1. Ensure all dependencies are installed: `pip install -r requirements.txt`
 2. Check Python version is 3.8+: `python --version`
 3. Try running with explicit port: `streamlit run app.py --server.port 8501`
-
-## 📦 Dependencies
-
-- **streamlit**: Web UI framework
-- **fastapi**: Backend API framework
-- **uvicorn**: ASGI server for FastAPI
-- **torch**: Deep learning framework
-- **torchvision**: Computer vision models and utilities
-- **pillow**: Image processing
-- **requests**: HTTP client for frontend-backend communication
-
-See `requirements.txt` for exact versions.
-
-## 🎓 Model Training
-
-This model was trained using transfer learning:
-
-1. **Backbone**: ConvNeXT-Base pretrained on ImageNet
-2. **Head**: Custom linear classifier with 15 outputs
-3. **Training**: 8 epochs on the scene classification dataset
-4. **Validation**: Tested on held-out validation set
-
-The model achieves high accuracy on scene classification tasks because:
-- ConvNeXT learns good visual features from ImageNet
-- Fine-tuning adapts these features to scene understanding
-- 15 distinct scene categories have different visual characteristics
-
-## 📝 API Reference
-
-### GET `/`
-
-Health check endpoint.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "model": "ConvNeXT-Base"
-}
-```
-
-### POST `/predict`
-
-Classify an image.
-
-**Request:**
-```json
-{
-  "image": "base64_encoded_image_string",
-  "filename": "image.jpg"
-}
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "label": "Forest",
-  "confidence": 0.9453,
-  "filename": "image.jpg"
-}
-```
-
-**Error Response:**
-```json
-{
-  "status": "error",
-  "label": "Error",
-  "confidence": 0.0,
-  "message": "Error description"
-}
-```
-
-## 💡 Tips & Tricks
-
-- **Faster inference**: Use a GPU - predictions are 5-10x faster
-- **Batch processing**: You can modify the backend to process multiple images
-- **Confidence threshold**: Adjust the UI to only show predictions above a certain confidence
-- **Dataset exploration**: Check the `dataset/validation/` folder to see example images
-
-## 🚀 Future Improvements
-
-- [ ] Support for batch image processing
-- [ ] Model download automation
-- [ ] Different model architectures (ResNet, EfficientNet)
-- [ ] Real-time webcam classification
-- [ ] Explainability features (attention maps, saliency maps)
-- [ ] Docker containerization
-- [ ] Cloud deployment (AWS, Azure, Google Cloud)
-
-## 📄 License
-
-This project is for educational purposes.
-
-## 👤 Author
-
-Created as part of Machine Learning II course at ICAI.
 
 ---
 
