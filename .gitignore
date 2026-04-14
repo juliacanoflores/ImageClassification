@@ -10,7 +10,7 @@ wandb/
 # Trained model artifacts
 models/
 
-
+__pycache__/
 
 
 
