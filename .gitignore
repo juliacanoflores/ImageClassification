@@ -5,7 +5,7 @@ dataset/
 .venv/
 
 # Logs
-wandb_logs/
+wandb/
 
 # Trained model artifacts
 models/
