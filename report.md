@@ -61,6 +61,18 @@ Seleccionar ConvNeXt-Base como modelo final del experimento por dominar la métr
 ## 2) Transfer-learning strategy
 La estrategia de transferencia debe seguir un esquema progresivo para preservar el conocimiento preentrenado y adaptarlo al dominio de escenas.
 
+### Justificación del parámetro unfreezed_layers
+El parámetro `unfreezed_layers` controla cuántos bloques finales del extractor de características se dejan entrenables. En términos prácticos:
+- `unfreezed_layers = 0`: todo el backbone queda congelado y solo se entrena la cabeza de clasificación.
+- `unfreezed_layers > 0`: se permite ajustar los últimos bloques del backbone para adaptar mejor las representaciones al dataset.
+
+Para la primera fase del experimento, se fija `unfreezed_layers = 0` en todos los modelos. Esta decisión se justifica por tres motivos:
+- Asegura una comparación inicial justa entre arquitecturas al reducir diferencias de protocolo.
+- Reduce riesgo de sobreajuste temprano cuando la cabeza aún no está adaptada al problema.
+- Disminuye coste computacional y estabiliza la convergencia inicial.
+
+Una vez estabilizada la cabeza, se pasa a una segunda fase con `unfreezed_layers > 0` de forma controlada y con learning rate menor. Este esquema permite aprovechar el preentrenamiento sin degradar las características generales aprendidas en el backbone.
+
 Fase 1: entrenamiento de la cabeza
 - Congelar el backbone completo.
 - Entrenar únicamente la cabeza de clasificación durante pocas épocas para adaptar la salida al número de clases.
