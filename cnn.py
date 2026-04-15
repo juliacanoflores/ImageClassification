@@ -68,7 +68,8 @@ class CNN(nn.Module):
                     valid_loader, 
                     optimizer, 
                     criterion, 
-                    epochs, 
+                    epochs,
+                    run_name,
                     nepochs_to_save=10,
                     use_wandb=False,
                     wandb_config=None,
@@ -99,7 +100,7 @@ class CNN(nn.Module):
                 architecture = self.base_model.__class__.__name__
 
             # Allow overriding the run name from config; otherwise build a stable default.
-            run_name = cfg.pop("run_name", None) or cfg.pop("name", None)
+            run_name = run_name
             if not run_name:
                 run_name = f"{architecture}-e{epochs}-lr{optimizer.defaults['lr']}-bs{train_loader.batch_size}"
 

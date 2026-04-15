@@ -4,16 +4,16 @@
 # Orden de ejecución del proyecto
 
 ## 1) Reproducibilidad
-- [ ] Fijar semillas (Python, NumPy, Torch, CUDA) — misma semilla para los 3 modelos.
-- [ ] Registrar versiones de librerías y entorno en Lightning AI.
-- [ ] Registrar hardware usado.
+- [x] Fijar semillas — misma semilla para los 3 modelos.
+- [x] Registrar versiones de librerías y entorno en Lightning AI.
+- [x] Registrar hardware usado.
 
 ## 2) Model selection rationale
-- [ ] Justificar los 3 modelos por familia arquitectónica, parámetros y coste compute.
-- [ ] Definir métrica principal (val_accuracy) y métricas secundarias (F1 macro, tiempo/época).
+- [x] Justificar los 3 modelos por familia arquitectónica, parámetros y coste compute.
+- [x] Definir métrica principal (val_accuracy) y métricas secundarias (F1 macro, tiempo/época).
 
 ## 3) Transfer-learning strategy (aplicar igual a los 3 modelos)
-- [ ] Fase 1: entrenar solo la cabeza de clasificación (backbone congelado).
+- [X] Fase 1: entrenar solo la cabeza de clasificación (backbone congelado).
 - [ ] Fase 2: descongelar las últimas capas/bloques para fine-tuning.
 - [ ] Usar learning rate menor al descongelar (mínimo 10x menor).
 - [ ] Documentar cuántas capas descongelar en cada modelo y por qué.
