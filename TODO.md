@@ -1,61 +1,51 @@
 # TODO - Clasificación de Imágenes
 
 
-# Por hacer
-# Checklist de calidad experimental (Transfer Learning + W&B)
+# Orden de ejecución del proyecto
 
-## 1) Model selection rationale
-- [ ] Definir objetivo y métrica principal (ej. val_accuracy).
-- [ ] Comparar al menos 2-3 modelos preentrenados (ej. ResNet50, EfficientNet-B0, ConvNeXt-Base).
-- [ ] Justificar cada candidato por precisión esperada, coste y tiempo de entrenamiento.
-- [ ] Registrar resultados comparables: mejor val_accuracy, tiempo por época, tamaño del modelo.
-- [ ] Elegir el modelo final con criterio explícito (no por intuición).
+## 1) Reproducibilidad
+- [ ] Fijar semillas (Python, NumPy, Torch, CUDA) — misma semilla para los 3 modelos.
+- [ ] Registrar versiones de librerías y entorno en Lightning AI.
+- [ ] Registrar hardware usado.
 
-## 2) Transfer-learning strategy
+## 2) Model selection rationale
+- [ ] Justificar los 3 modelos por familia arquitectónica, parámetros y coste compute.
+- [ ] Definir métrica principal (val_accuracy) y métricas secundarias (F1 macro, tiempo/época).
+
+## 3) Transfer-learning strategy (aplicar igual a los 3 modelos)
 - [ ] Fase 1: entrenar solo la cabeza de clasificación (backbone congelado).
 - [ ] Fase 2: descongelar las últimas capas/bloques para fine-tuning.
-- [ ] Usar learning rate menor al descongelar.
-- [ ] Documentar cuántas capas descongelar y por qué.
-- [ ] Aplicar augmentations y normalización coherentes con el modelo preentrenado.
-- [ ] Guardar el mejor checkpoint según validación.
+- [ ] Usar learning rate menor al descongelar (mínimo 10x menor).
+- [ ] Documentar cuántas capas descongelar en cada modelo y por qué.
+- [ ] Aplicar augmentations y normalización coherentes con los pesos preentrenados de cada modelo.
+- [ ] Guardar el mejor checkpoint por validación en cada modelo.
 
-## 3) Hyperparameter tuning depth
-- [ ] Definir un espacio de búsqueda antes de ejecutar runs.
+## 4) Hyperparameter tuning (por cada uno de los 3 modelos)
+- [ ] Definir el espacio de búsqueda antes de ejecutar runs.
 - [ ] Probar varios learning rates (mínimo 3-4).
 - [ ] Probar al menos 2 optimizadores o configuraciones equivalentes.
 - [ ] Probar varios weight decay.
-- [ ] Probar distintos batch sizes (si hardware lo permite).
-- [ ] Probar distintos niveles de descongelado.
-- [ ] Ejecutar al menos 10 runs comparables (ideal: 12-20).
-- [ ] Reportar tendencias (qué funcionó y qué no), no solo el mejor run.
+- [ ] Probar distintos niveles de descongelado (freeze layers).
+- [ ] Probar distintos número de epochs.
+- [ ] Ejecutar al menos 10 runs comparables por modelo (ideal: 12-20).
 
-## 4) Calidad de tracking en W&B
-- [ ] Definir nombre claro y tags útiles para cada run.
-- [ ] Guardar config completa por run (modelo, lr, batch, optimizer, wd, epochs, seed).
+## 5) Tracking en W&B (en paralelo con 3 y 4)
+- [ ] Usar naming convention clara: `{modelo}_{fase}_{lr}_{run_id}` y tags por modelo.
+- [ ] Guardar config completa por run (modelo, lr, batch, optimizer, wd, epochs, freeze_layers, seed).
 - [ ] Loguear train_loss, val_loss, val_accuracy por época.
 - [ ] Loguear learning rate y tiempo por época.
-- [ ] Subir artefactos del mejor modelo.
-- [ ] Guardar visualizaciones clave (curvas, confusión, ejemplos de predicción).
-
-## 5) Reproducibilidad
-- [ ] Fijar semillas (Python, NumPy, Torch, CUDA).
-- [ ] Registrar versiones de librerías y entorno.
-- [ ] Registrar hardware usado.
-- [ ] Guardar la configuración exacta del mejor run.
-- [ ] Repetir el mejor experimento para verificar estabilidad.
+- [ ] Subir artefactos del mejor checkpoint de cada modelo.
+- [ ] Guardar curvas de entrenamiento, matriz de confusión y ejemplos de predicción por modelo.
 
 ## 6) Análisis final
-- [ ] Incluir tabla comparativa final de modelos y configuraciones.
-- [ ] Explicar overfitting/underfitting con curvas de entrenamiento.
-- [ ] Analizar errores por clase (matriz de confusión o equivalente).
-- [ ] Cerrar con conclusión técnica clara: mejor modelo + por qué + coste.
-- [ ] Añadir mejoras futuras concretas.
-
-## Autoevaluación rápida
-- [ ] Verde: completar >=80% con evidencia clara.
-- [ ] Amarillo: mantener 60-79% e identificar faltantes en comparativas o reproducibilidad.
-- [ ] Rojo: identificar <60% y planificar más runs y mejor justificación.
-
+- [ ] Tabla comparativa: mejor val_accuracy, F1 macro, tiempo/época y nº parámetros por modelo.
+- [ ] Curvas de entrenamiento del mejor run de cada modelo (overfitting/underfitting).
+- [ ] Matriz de confusión por modelo — analizar qué clases fallan y si el patrón es consistente.
+- [ ] Selección del modelo final con criterio explícito (accuracy, coste, latencia de inferencia).
+- [ ] Conclusión técnica: mejor modelo + por qué + coste operativo para producción.
+- [ ] Guardar la configuración exacta del mejor run de cada modelo.
+- [ ] Repetir el mejor run de cada modelo para verificar estabilidad.
+- [ ] Mejoras futuras concretas.
 
 # En progreso
 - [ ] (Añadir tarea aquí) | Responsable: 

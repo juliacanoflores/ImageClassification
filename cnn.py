@@ -1,11 +1,13 @@
-import matplotlib.pyplot as plt
 import os
+from tempfile import TemporaryDirectory
+
+import matplotlib.pyplot as plt
 import torch
 import torchvision
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from tempfile import TemporaryDirectory
+
 import wandb
 
 # Solo esta línea de configuración
@@ -91,19 +93,27 @@ class CNN(nn.Module):
         if use_wandb:
             if wandb_config is None:
                 wandb_config = {}
+            cfg = dict(wandb_config)
             # Detect architecture automatically if not provided
             if architecture is None:
                 architecture = self.base_model.__class__.__name__
+
+            # Allow overriding the run name from config; otherwise build a stable default.
+            run_name = cfg.pop("run_name", None) or cfg.pop("name", None)
+            if not run_name:
+                run_name = f"{architecture}-e{epochs}-lr{optimizer.defaults['lr']}-bs{train_loader.batch_size}"
+
             wandb.init(
                 entity="javi_paula_julia",
                 project="image-classification",
                 mode="online",
+                name=run_name,
                 config={
                     "learning_rate": optimizer.defaults['lr'],
                     "epochs": epochs,
                     "batch_size": train_loader.batch_size,
                     "architecture": architecture,
-                    **wandb_config
+                    **cfg
                 }
             )
         
