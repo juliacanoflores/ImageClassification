@@ -1,0 +1,137 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage{mathptmx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  showstringspaces=false
+}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\title{Machine Learning II}
+\author{Javier Arroyo García}
+\date{14/04/2026}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    \Huge
+    \textbf{Machine Learning II}
+    
+    \vspace{0.5cm}
+    \LARGE
+    \textit{Deep Learning}
+    
+    \vspace{3cm}
+    \includegraphics[width=0.5\textwidth]{imagenes/logocomillas.png} 
+    
+    \vfill
+    
+    \Large
+    %\textbf{Grupo}
+    
+    Javier Arroyo García
+    
+    Julia Cano Flores
+       
+    Paula Durá Fuster
+    
+    \vspace{0.2cm}
+    
+    \Large
+
+    \vspace{0.2cm}
+    \Large
+    ICAI
+    
+    \vspace{0.8cm}
+    \normalsize
+    
+    
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+
+El sector inmobiliario depende cada vez más de la calidad visual de sus publicaciones. En marketplaces 
+como Idealista o Zillow, los anuncios con imágenes bien categorizadas generan mayor engagement y reducen 
+la fricción en la búsqueda de propiedades. Sin embargo, la categorización manual de imágenes a escala 
+es costosa, inconsistente y difícilmente escalable.
+
+Este proyecto aborda ese problema mediante un sistema de clasificación automática de imágenes 
+inmobiliarias en 15 categorías de estancia, orientado a integrarse en el flujo de publicación de un 
+marketplace. El usuario objetivo es el equipo técnico de la plataforma, que necesita una solución 
+robusta, mantenible y con documentación suficiente para operar en producción.
+
+Para ello se ha desarrollado un pipeline completo que comprende: selección y comparación de modelos 
+preentrenados mediante transfer learning, experimentación trazable con Weights \& Biases, y despliegue 
+de un servicio de inferencia con FastAPI como backend y Streamlit como interfaz de usuario.
+
+\section{Reproducibilidad}
+
+Los experimentos se ejecutaron en un entorno gestionado con Lightning AI, utilizando aceleración por GPU para entrenar y evaluar los modelos de forma eficiente. Esta configuración permite mantener un entorno de ejecución consistente y facilita la repetibilidad de los resultados obtenidos.
+
+Las versiones concretas de las librerías y dependencias empleadas en el proyecto pueden consultarse directamente en el repositorio, donde se incluyen los archivos de configuración necesarios para reproducir el entorno de trabajo.
+
+\section{Baseline de Modelos}
+
+La selección de modelos para el baseline buscó comparar familias arquitectónicas representativas y complementarias dentro de la clasificación visual. En concreto, se eligieron tres enfoques distintos: transformadores visuales, redes convolucionales modernas de alta capacidad y arquitecturas orientadas a la eficiencia.
+
+\textit{Swin-T} se incluyó como representante de los \textit{Vision Transformers}, ya que su mecanismo de atención jerárquica permite capturar relaciones espaciales globales relevantes en imágenes inmobiliarias complejas. \textit{ConvNeXt-Small} se seleccionó como una CNN moderna que conserva las ventajas inductivas de las convoluciones, pero incorpora mejoras recientes inspiradas en transformadores. Por su parte, \textit{EfficientNetV2-S} se eligió por su equilibrio entre precisión y coste computacional, una propiedad especialmente valiosa en escenarios de despliegue real.
+
+En conjunto, estos tres modelos permiten comparar precisión, capacidad de generalización y eficiencia bajo una misma configuración de entrenamiento: 8 épocas, tamaño de lote de 32, optimizador AdamW y tasa de aprendizaje de 0.001. Como métrica principal de comparación se utilizará la \textit{accuracy} sobre validación (\textit{validation accuracy} o \textit{val accuracy}), definida como la proporción de imágenes del conjunto de validación que el modelo clasifica correctamente. Se prioriza esta métrica porque el objetivo del baseline no es medir qué bien memoriza el conjunto de entrenamiento, sino estimar la capacidad de generalización del modelo sobre datos no vistos. Además, al tratarse de un problema de clasificación multiclase con categorías mutuamente excluyentes, la \textit{accuracy} proporciona una medida directa, interpretable y fácil de comparar entre arquitecturas. La Tabla~\ref{tab:baseline-modelos} resume los resultados obtenidos en esta fase inicial.
+
+\begin{table}[H]
+    \centering
+    \caption{Resultados del baseline de modelos preentrenados.}
+    \label{tab:baseline-modelos}
+    \begin{tabular}{lccccc}
+        \toprule
+        Modelo & Acc. train & Acc. valid & Loss train & Loss valid & Tiempo \\
+        \midrule
+        Swin-T & 0.830 & \textbf{0.911} & 0.547 & \textbf{0.275} & 3 min 45 s \\
+        ConvNeXt-Small & 0.766 & 0.855 & 1.016 & 0.881 & 5 min 18 s \\
+        EfficientNetV2-S & 0.716 & 0.806 & 0.900 & 0.637 & 3 min 20 s \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Se observa que \textit{Swin-T} ofrece el mejor rendimiento de validación entre los modelos comparados, alcanzando un accuracy del 91.1\% y la menor pérdida de validación. Esto lo convierte en la referencia inicial más sólida para las siguientes iteraciones del proyecto.
+
+\section{Fine-tuning de Swin-T}
+
+Una vez identificado \textit{Swin-T} como el modelo más prometedor en la fase baseline, se planteó un proceso de \textit{fine-tuning} sobre pesos preentrenados con el objetivo de adaptar progresivamente sus representaciones al dominio específico de imágenes inmobiliarias. La idea principal de este enfoque consiste en aprovechar el conocimiento visual previamente aprendido en grandes corpus de imágenes y refinarlo de forma controlada sobre la nueva tarea, reduciendo tanto el coste de entrenamiento como el riesgo de sobreajuste asociado a entrenar el modelo desde cero.
+
+\subsection{Fase 1: Warm-up de la cabeza de clasificación}
+
+En una primera fase, se congeló completamente el \textit{feature extractor} o \textit{backbone} del modelo, de modo que únicamente se actualizasen los parámetros de la cabeza de clasificación. Bajo esta configuración, el extractor de características actúa como un generador fijo de representaciones visuales, mientras que la última capa aprende a mapear dichas representaciones a las clases concretas del problema.
+
+Para esta etapa se utilizó el optimizador AdamW con una tasa de aprendizaje de $10^{-3}$ y un entrenamiento de 3 épocas. Esta fase de \textit{warm-up} permite adaptar inicialmente el clasificador a las categorías del dataset sin alterar las representaciones profundas ya aprendidas durante el preentrenamiento. Desde un punto de vista práctico, este procedimiento estabiliza el arranque del entrenamiento y reduce el riesgo de que actualizaciones demasiado agresivas degraden información visual general útil en las primeras iteraciones.
+
+\subsection{Fase 2: Fine-tuning parcial del backbone}
+
+Una vez ajustada la cabeza de clasificación, se pasó a una segunda fase de \textit{fine-tuning} parcial en la que se mantuvieron congeladas la mayoría de las capas del \textit{feature extractor} y se descongelaron únicamente las dos últimas capas del extractor de características. La cabeza de clasificación continuó entrenándose de forma simultánea, permitiendo que tanto la salida del modelo como sus representaciones de más alto nivel se adaptasen mejor al dominio del problema.
+
+En esta fase se emplearon tasas de aprendizaje diferenciadas: $3 \times 10^{-4}$ para la cabeza de clasificación y $1 \times 10^{-5}$ para el \textit{backbone}, manteniendo AdamW como optimizador. El entrenamiento se prolongó durante 8 épocas. Esta estrategia responde a la necesidad de introducir una adaptación progresiva del modelo: la cabeza, al estar inicializada específicamente para la nueva tarea, puede actualizarse con mayor rapidez, mientras que las capas profundas preentrenadas requieren cambios mucho más pequeños para no destruir el conocimiento previamente adquirido.
+
+El uso de AdamW resulta especialmente adecuado en este contexto porque desacopla la regularización \textit{weight decay} de la actualización principal de los parámetros, lo que favorece un entrenamiento más estable en modelos profundos y preentrenados. Asimismo, la utilización de \textit{discriminative learning rates} permite asignar distintas magnitudes de actualización a diferentes partes de la red según su grado de especialización: valores mayores en los componentes nuevos o más task-specific, y valores menores en los bloques preentrenados que conviene preservar. En conjunto, esta combinación facilita una adaptación controlada y eficaz del modelo al dominio inmobiliario.
+
+\end{document}
