@@ -12,5 +12,8 @@ models/
 
 __pycache__/
 
+# LaTeX build artifacts
+report/build/
+
 
 
