@@ -1,0 +1,40 @@
+\section{Selección de modelos y estrategia de transfer learning}
+
+\subsection{Modelos candidatos}
+
+La elección de modelos se ha hecho intentando cubrir la mayor variedad posible: en lugar de comparar variantes de una misma familia, se seleccionó un representante de cada una de las tres grandes corrientes de la visión por computador moderna. De este modo, los resultados permiten extraer conclusiones sobre enfoques, no solo sobre configuraciones concretas.
+
+\begin{itemize}\setlength\itemsep{2pt}
+    \item \textbf{Swin-T} representa los \textit{Vision Transformers}. Su fortaleza reside en comprender el contexto global de una imagen: qué hay a la izquierda, qué hay al fondo, cómo se relacionan las distintas zonas de la escena. Esto lo hace intuitivamente adecuado para imágenes inmobiliarias, donde el conjunto de la habitación importa tanto como sus elementos individuales.
+    \item \textbf{ConvNeXt-Small} representa las redes convolucionales modernas. Es la apuesta de mayor capacidad del grupo: incorpora las lecciones aprendidas de los transformadores utilizando la arquitectura convolucional, lo que le permite ser preciso y estable. A priori, es el candidato al mejor rendimiento absoluto.
+    \item \textbf{EfficientNetV2-S} representa los modelos orientados a eficiencia. Con menos parámetros y mayor velocidad de inferencia, es el candidato natural para producción en entornos con restricciones de latencia o coste computacional. Se incluye para verificar si la ganancia en precisión de los modelos más grandes justifica su coste adicional.
+\end{itemize}
+
+La \textbf{métrica principal} es la \textit{val\_accuracy} (proporción de predicciones correctas en validación), complementada con el \textbf{F1 macro} para detectar sesgos entre clases en un problema de 15 categorías con posible desbalance. Se considera éxito alcanzar $\geq 0.80$ de accuracy con curvas de entrenamiento estables (sin crecimiento sostenido del gap train/val).
+
+\subsection{Estrategia de transfer learning en dos fases}
+
+La idea central del transfer learning es no partir de cero. Los modelos ya han aprendido a reconocer formas, texturas y estructuras visuales en millones de imágenes; el objetivo es reutilizar ese conocimiento y adaptarlo a nuestro problema con el mínimo coste y riesgo posible. Para ello se aplica un esquema de dos fases progresivas, idéntico para los tres modelos.
+
+\textbf{Fase 1 — Aprender a clasificar sin tocar el modelo base (backbone congelado):} en una primera etapa, el cuerpo del modelo se congela por completo y solo se entrena la capa final, que es la única parte nueva. Esta decisión tiene una lógica clara: si se intentara actualizar toda la red desde el principio, los primeros gradientes —procedentes de una cabeza sin entrenar— podrían destruir el conocimiento ya aprendido. Dejar el backbone fijo garantiza un arranque estable y permite que la cabeza se adapte a las 15 clases del problema antes de tocar nada más.
+
+\textbf{Fase 2 — Afinar las capas superiores del modelo (unfreeze de capas):} una vez que la cabeza está orientada al problema, se descongelan los últimos bloques del backbone y se les permite ajustarse también, pero con mucha más cautela. Se usan tasas de aprendizaje distintas para cada parte: más alta para la cabeza (que aún tiene margen de mejora) y mucho más baja para el backbone (para no sobreescribir lo que ya funcionaba bien). El resultado es una adaptación progresiva y controlada al dominio de imágenes inmobiliarias, manteniendo la estabilidad del entrenamiento.
+
+\subsection{Resultados del baseline (fase 1, 8 épocas, AdamW, lr=1e-3)}
+
+\begin{table}[H]
+    \centering
+    \caption{Resultados del baseline con backbone completamente congelado.}
+    \label{tab:baseline-modelos}
+    \begin{tabular}{lccccc}
+        \toprule
+        Modelo & Acc. train & Acc. valid & Loss train & Loss valid & Tiempo/época \\
+        \midrule
+        Swin-T           & 0.830 & \textbf{0.911} & 0.547 & \textbf{0.275} & 3 min 45 s \\
+        ConvNeXt-Small   & 0.766 & 0.855          & 1.016 & 0.881          & 5 min 18 s \\
+        EfficientNetV2-S & 0.716 & 0.806          & 0.900 & 0.637          & 3 min 20 s \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Swin-T lidera el baseline con 91.1\% de accuracy y la menor pérdida de validación, lo que indica que sus representaciones preentrenadas son más directamente transferibles a este dominio. Los tres modelos superan ya el criterio de éxito mínimo (80\%) con el backbone congelado, confirmando la calidad de los pesos preentrenados en ImageNet para escenas interiores.

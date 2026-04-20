@@ -1,0 +1,18 @@
+\section{Introducción y contexto de negocio}
+
+En marketplaces inmobiliarios como Idealista o Zillow, la calidad y la correcta categorización visual de los anuncios influye directamente en la experiencia de los compradores y en la velocidad de venta. La categorización manual de imágenes a escala es costosa, inconsistente y no escalable: un agente inmobiliario puede subir decenas de fotos por propiedad, y clasificarlas correctamente requiere tiempo y criterio especializado.
+
+Este proyecto desarrolla un \textbf{servicio de clasificación automática de imágenes en 15 categorías de estancia} orientado a integrarse en el flujo de publicación de un marketplace. El usuario objetivo es el equipo técnico de la plataforma, que necesita una solución robusta, reproducible y con documentación suficiente para operar y mantener en producción. Con la implementación de esta solución, el valor esperado es tanto reducción del trabajo manual de clasificación como la mejora de la coherencia de los datos de catálogo.
+
+El pipeline completo está compuesto por tres componentes:
+\begin{enumerate}
+    \item Selección y comparación de modelos preentrenados mediante transfer learning
+    \item Experimentación trazable y búsqueda de hiperparámetros con Weights \& Biases
+    \item Despliegue de un servicio de inferencia con FastAPI como backend y Streamlit como interfaz de usuario.
+\end{enumerate}
+
+\subsection{Descripción del dataset}
+
+El dataset consta de \textbf{2\,985 imágenes de entrenamiento} y \textbf{1\,500 imágenes de validación}, distribuidas en 15 categorías de escenas tanto interiores como exteriores: \textit{Bedroom, Coast, Forest, Highway, Industrial, Inside city, Kitchen, Living room, Mountain, Office, Open country, Store, Street, Suburb} y \textit{Tall building}. Las imágenes tienen resolución variable y se redimensionan a $224\times224$ px antes del entrenamiento, valor estándar para los backbones preentrenados en ImageNet.
+
+Las particiones de entrenamiento y validación están fijadas en el repositorio para garantizar comparaciones consistentes entre modelos y configuraciones.

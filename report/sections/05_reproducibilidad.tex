@@ -1,0 +1,12 @@
+\section{Reproducibilidad}
+
+Los experimentos se ejecutaron en Lightning AI con GPU NVIDIA T4 y entorno Python 3.12 gestionado con conda. El repositorio público incluye:
+
+\begin{itemize}\setlength\itemsep{2pt}
+    \item \texttt{requirements.txt} con versiones exactas de todas las dependencias (PyTorch 2.2.1, torchvision 0.17.1, wandb 0.18.1, entre otras).
+    \item Semilla global fija (42) aplicada a \texttt{torch}, \texttt{torch.cuda}, \texttt{numpy} y \texttt{random} antes de cada run.
+    \item Scripts de entrenamiento (\texttt{sweep\_train.py}) y lanzamiento de sweeps (\texttt{launch\_sweeps.py}) con instrucciones de ejecución en el README.
+    \item Checkpoints de los mejores modelos como artefactos versionados en W\&B, accesibles desde el workspace público \texttt{javi\_paula\_julia/image-classification}.
+\end{itemize}
+
+Los profesores \texttt{agascon@comillas.edu} y \texttt{rkramer@comillas.edu} han sido invitados al workspace de W\&B para acceder al historial completo de experimentos, curvas de entrenamiento, matrices de confusión y artefactos de modelos.

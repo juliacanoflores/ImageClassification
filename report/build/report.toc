@@ -1,0 +1,17 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{2}{section.1}%
+\contentsline {section}{\numberline {2}Reproducibilidad}{2}{section.2}%
+\contentsline {section}{\numberline {3}Baseline de Modelos}{2}{section.3}%
+\contentsline {section}{\numberline {4}Fine-tuning de Swin-T}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Fase 1: Warm-up de la cabeza de clasificación}{3}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Fase 2: Fine-tuning parcial del backbone}{4}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Búsqueda Sistemática de Hiperparámetros}{4}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Espacio de búsqueda}{5}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Protocolo de entrenamiento por run}{5}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Resultados del sweep}{5}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Patrones observados}{6}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Selección del Modelo Final y Despliegue}{6}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Criterio de selección}{6}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Arquitectura del sistema}{7}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Métricas de rendimiento por clase}{7}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Conclusiones}{7}{section.7}%

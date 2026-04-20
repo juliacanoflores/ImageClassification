@@ -1,0 +1,7 @@
+\section{Conclusiones y recomendaciones}
+
+El transfer learning sobre arquitecturas modernas preentrenadas permite alcanzar un \textbf{96.47\% de accuracy y F1 macro} en clasificación de imágenes inmobiliarias en 15 clases con tan solo 2\,985 imágenes de entrenamiento y 36 ejecuciones experimentales. Los tres hallazgos principales del proceso de tuning son: (1) AdamW supera a SGD en todos los escenarios de fine-tuning evaluados; (2) descongelar al menos 2--3 bloques del backbone es imprescindible para superar el 92\%; y (3) weight\_decay $\geq 0.05$ mejora consistentemente la generalización cuando se entrena con datos limitados.
+
+\textbf{Recomendación operativa:} desplegar ConvNeXt-Small para máxima precisión, o EfficientNetV2-S cuando la latencia o el coste de inferencia sean críticos. La diferencia de accuracy entre ambos es marginal (0.47 pp), mientras que la diferencia de coste computacional es significativa ($2.3\times$). Para un marketplace con alto volumen de imágenes diarias, EfficientNetV2-S ofrece el mejor balance coste-beneficio.
+
+\textbf{Mejoras futuras:} (1) data augmentation más agresiva (mixup, cutmix) para reducir la varianza y mejorar robustez ante imágenes atípicas; (2) ensemble de ConvNeXt-Small y EfficientNetV2-S por votación suave; (3) calibración de confianza (\textit{temperature scaling}) para salidas probabilísticas más fiables; (4) fine-tuning completo del backbone con scheduler cíclico (\textit{cosine annealing with warm restarts}).

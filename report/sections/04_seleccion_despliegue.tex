@@ -1,0 +1,42 @@
+\section{Selección del modelo final y despliegue}
+
+\subsection{Criterio de selección}
+
+\textbf{ConvNeXt-Small} se selecciona como modelo de producción principal por su mayor accuracy (96.47\%) y F1 macro (96.47\%), indicando rendimiento equilibrado en las 15 clases. La diferencia con el baseline de Swin-T (+5.4 pp) y la consistencia de las configuraciones top-4 (todas por encima del 95.8\%) refuerzan la confianza en su generalización.
+
+\textbf{EfficientNetV2-S} constituye la alternativa recomendada cuando se requiere baja latencia: con un 96.00\% de accuracy y $2.3\times$ menor tiempo por época (43.5\,s vs.\ 99.9\,s), es la opción preferible en entornos con restricciones de cómputo, como instancias serverless o despliegues sin GPU.
+
+\subsection{Arquitectura del sistema de inferencia}
+
+El servicio de inferencia en producción está compuesto por dos componentes independientes comunicados a través de HTTP:
+
+\begin{itemize}\setlength\itemsep{3pt}
+    \item \textbf{Backend (FastAPI):} expone los siguientes endpoints:
+    \begin{itemize}\setlength\itemsep{2pt}
+        \item \texttt{GET /} — health check rápido; devuelve \texttt{status} y nombre del modelo cargado.
+        \item \texttt{GET /health} — health check detallado; devuelve \texttt{status}, \texttt{model\_loaded} y \texttt{device} (CPU/GPU).
+        \item \texttt{GET /classes} — devuelve la lista de las 15 categorías con su índice.
+        \item \texttt{GET /model-info} — devuelve metadatos del modelo: arquitectura, ruta del checkpoint, tamaño de entrada, número de clases y dispositivo.
+        \item \texttt{POST /predict} — recibe una imagen en base64 y devuelve la clase predicha, la confianza y el nombre de fichero.
+        \item \texttt{POST /predict-topk} — recibe una imagen en base64 y el parámetro \texttt{k}; devuelve las \textit{k} clases más probables con sus confidencias, permitiendo al frontend mostrar la distribución completa de predicciones.
+    \end{itemize}
+    Todos los endpoints devuelven JSON con un campo \texttt{status} (\texttt{"success"} o \texttt{"error"}) y un mensaje descriptivo en caso de fallo. La documentación interactiva (Swagger UI) está disponible en \texttt{/docs} y la estática en \texttt{docs/api.md}.
+    \item \textbf{Frontend (Streamlit):} interfaz web que permite cargar imágenes locales o por URL, muestra la predicción principal con su nivel de confianza y visualiza la distribución de probabilidad sobre las 15 clases mediante gráfico de barras interactivo.
+\end{itemize}
+
+\subsection{Rendimiento por clase y viabilidad operativa}
+
+Al finalizar cada run, el script registra automáticamente en W\&B la matriz de confusión sobre el conjunto de validación, vinculada al checkpoint y configuración exactos de ese run. Esto permite un análisis de errores trazable y reproducible.
+
+Del análisis comparativo de las tres matrices se desprenden patrones consistentes. Las clases con mayor accuracy son las de apariencia más distintiva: \textit{Highway} y \textit{Suburb} alcanzan el 100\% en los tres modelos; \textit{Coast}, \textit{Mountain} y \textit{Office} se sitúan sistemáticamente por encima del 96\%. En el extremo opuesto, \textit{Open country} es la clase más difícil en todos los modelos (ConvNeXt-Small: 87\%, EfficientNetV2-S: 90\%, Swin-T: 75\%), confundiéndose principalmente con \textit{Coast} y \textit{Mountain} — escenas naturales sin elementos urbanos que sirvan de referencia visual inequívoca. La pareja \textit{Inside city}/\textit{Street} genera también errores sistemáticos por la similitud de ambas escenas urbanas.
+
+La diferencia entre modelos se hace más evidente en las clases interiores: Swin-T clasifica \textit{Bedroom} con solo un 78\% de accuracy (confundiendo 16 de 100 imágenes con \textit{Living room}), mientras que ConvNeXt-Small y EfficientNetV2-S superan el 94\% en esa misma clase. Este patrón explica la brecha de 4 pp en F1 macro entre Swin-T y los otros dos modelos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\linewidth]{imagenes/confusion_matrix_convnext.png}
+    \caption{Matriz de confusión — ConvNeXt-Small (mejor run, conjunto de validación).}
+    \label{fig:cm-convnext}
+\end{figure}
+
+En conjunto, el F1 macro de 96.47\% de ConvNeXt-Small supera ampliamente el umbral de éxito ($\geq 80\%$). Los errores residuales se concentran en pares de clases ambiguos incluso para un observador humano, lo que los hace aceptables para el caso de uso previsto. Desde el punto de vista operativo, la latencia de inferencia es del orden de milisegundos por imagen en GPU, lo que hace viable la integración en el flujo de publicación sin impacto perceptible para el usuario.
