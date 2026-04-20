@@ -1,257 +1,176 @@
 # Scene Image Classifier
 
-A web application that classifies images into 15 different scene categories using a ConvNeXT deep learning model trained with transfer learning.
+Automatic classification of real-estate scene images into 15 categories using transfer learning. Built as part of the Machine Learning II course at ICAI.
+
+**Final model:** ConvNeXt-Small — **96.47% val accuracy / 96.47% F1 macro** (best of 36 W&B sweep runs).
+
+## Scene Categories
+
+Bedroom · Coast · Forest · Highway · Industrial · Inside city · Kitchen · Living room · Mountain · Office · Open country · Store · Street · Suburb · Tall building
 
 ## Architecture
 
-The application uses a **microservices architecture** with two independent services:
-
 ```
 ┌─────────────────────────────────────────┐
-│   Streamlit Frontend (Port 8501)        │
-│   - User interface                      │
-│   - Image upload/selection              │
-│   - Result display                      │
+│   Streamlit Frontend  (Port 8501)       │
+│   - Image upload / URL input            │
+│   - Top-1 and Top-K prediction display  │
+│   - Confidence bar chart                │
 └────────────┬────────────────────────────┘
-             │ HTTP JSON
+             │ HTTP JSON (base64 image)
              ↓
 ┌─────────────────────────────────────────┐
-│   FastAPI Backend (Port 8000)           │
-│   - ConvNeXT model (8 epochs)           │
-│   - Image processing                    │
-│   - Classification inference            │
+│   FastAPI Backend  (Port 8000)          │
+│   - ConvNeXt-Small inference            │
+│   - /predict  /predict-topk             │
+│   - /classes  /model-info  /health      │
 └─────────────────────────────────────────┘
 ```
 
-## Supported Scene Classes
-
-Bedroom, Coast, Forest, Highway, Industrial, Inside city, Kitchen, Living room, Mountain, Office, Open country, Store, Street, Suburb, Tall building
-
 ## Quick Start
 
-### Installation
-
-1. **Clone/Navigate to the project directory:**
-   ```bash
-   cd ImageClassification
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Running the Application
-
-**Step 1: Start the backend server** (in a terminal)
 ```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Start backend (terminal 1)
 python fastapi_backend.py
-```
 
-Expected output:
-```
-Loading model...
-[OK] Model loaded successfully!
-Starting server on http://0.0.0.0:8000...
-```
-
-**Step 2: Start the frontend** (in a new terminal)
-```bash
+# 3. Start frontend (terminal 2)
 streamlit run app.py
+
+# 4. Open http://localhost:8501
 ```
 
-Expected output:
+API docs (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)  
+Static API reference: [docs/api.md](docs/api.md)
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Quick health check |
+| GET | `/health` | Detailed health (model_loaded, device) |
+| GET | `/classes` | List of 15 class labels |
+| GET | `/model-info` | Model metadata (architecture, input size, device) |
+| POST | `/predict` | Top-1 prediction from base64 image |
+| POST | `/predict-topk` | Top-k predictions with confidences |
+
+**POST /predict** — request body:
+```json
+{ "image": "<base64-encoded image>", "filename": "photo.jpg" }
 ```
-You can now view your Streamlit app in your browser.
-Local URL: http://localhost:8501
+
+**POST /predict-topk** — request body:
+```json
+{ "image": "<base64-encoded image>", "k": 3 }
 ```
-
-**Step 3: Open in browser**
-- Go to `http://localhost:8501`
-- Start classifying images!
-
-## How It Works
-
-### Frontend (Streamlit)
-
-- **Image Upload**: User selects or uploads an image
-- **Encoding**: Image is converted to base64 (text-friendly format)
-- **API Calls**: Frontend checks backend status and model metadata before inference
-- **Info Panel**: A sidebar panel shows backend reachability, model loaded status, device, architecture, and number of classes
-- **Top-K Mode**: Optional Top-K predictions with ranked probabilities
-- **Display**: Result is shown as top-1 metric and optional Top-K table
-
-### Backend (FastAPI)
-
-1. **Receive Request**: API receives base64-encoded image
-2. **Decode**: Image is decoded back to PIL Image
-3. **Preprocess**: Image is resized to 224×224 pixels
-4. **Inference**: Image passes through ConvNeXT backbone
-5. **Classify**: Classification head outputs 15 probabilities
-6. **Return**: Top prediction and confidence sent back to frontend
-
-### Model Details
-
-- **Architecture**: ConvNeXT-Base (pretrained on ImageNet)
-- **Training**: Transfer learning with custom 15-class head
-- **Epochs**: 8 epochs on scene classification dataset
-- **Input Size**: 224×224 RGB images
-- **Output**: 15 scene classes with confidence scores
 
 ## Project Structure
 
 ```
 ImageClassification/
-├── app.py                        # Streamlit frontend
-├── fastapi_backend.py            # FastAPI backend server
-├── requirements.txt              # Python dependencies
-├── README.md                     # This file
+├── app.py                    # Streamlit frontend
+├── fastapi_backend.py        # FastAPI backend
+├── cnn.py                    # CNN class + training utilities
+├── requirements.txt          # Python dependencies
+│
+├── scripts/
+│   ├── sweep_train.py        # Single-run training function (W&B agent)
+│   ├── launch_sweeps.py      # Create and launch W&B sweeps
+│   └── analyze_results.py    # Parse results.csv and print comparison table
 │
 ├── models/
 │   └── convnext_base-8epoch.pt   # Trained model weights
 │
 ├── dataset/
-│   ├── training/                 # Training images (15 classes)
-│   └── validation/               # Validation images (15 classes)
+│   ├── training/             # 2,985 training images (15 classes)
+│   └── validation/           # 1,500 validation images (15 classes)
 │
-└── wandb/                        # Training logs (optional)
+├── confusion_matrix/         # Per-model confusion matrices (CSV from W&B)
+├── imagenes/                 # Report figures
+├── docs/
+│   └── api.md                # Static API documentation
+└── report.tex                # Technical report (LaTeX)
 ```
+
+## Model Training & Experimentation
+
+Training follows a **two-phase transfer learning** strategy applied to three architectures:
+
+| Model | Val Acc | F1 Macro | s/epoch |
+|-------|---------|----------|---------|
+| **ConvNeXt-Small** | **96.47%** | **96.47%** | 99.9 |
+| EfficientNetV2-S | 96.00% | 96.00% | 43.5 |
+| Swin-T | 92.27% | 92.21% | 26.6 |
+
+**Phase 1 — Warmup:** backbone frozen, only the classification head is trained.  
+**Phase 2 — Fine-tuning:** last N backbone blocks unfrozen with discriminative learning rates (`lr_backbone` ≪ `lr_head`).
+
+Hyperparameter search used **Bayesian optimisation** via W&B sweeps (12 runs per model, 36 total). Key findings: AdamW outperforms SGD consistently; unfreezing 3 blocks is optimal; `weight_decay ≥ 0.05` improves generalisation.
+
+### Reproducing the sweep
+
+```bash
+# Create the 3 W&B sweeps (no GPU needed)
+python scripts/launch_sweeps.py --create-only
+
+# Run agents (requires GPU, run on Lightning AI or similar)
+python scripts/launch_sweeps.py --count 12
+
+# Single model
+python scripts/launch_sweeps.py --model ConvNeXt-Small --count 12
+
+# Resume existing sweep by ID
+python scripts/launch_sweeps.py --sweep-id <id> --model <name> --count 12
+```
+
+W&B project: [javi_paula_julia/image-classification](https://wandb.ai/javi_paula_julia/image-classification)
+
+### Reproducing a single run
+
+```bash
+python scripts/sweep_train.py  # smoke-test with default config (Swin-T)
+```
+
+## Reproducibility
+
+- Seed: **42** (fixed in `torch`, `torch.cuda`, `numpy`, `random`)
+- Environment: Python 3.12, Lightning AI GPU (T4)
+- Exact dependency versions: see `requirements.txt`
+- Best checkpoints stored as versioned W&B artifacts
 
 ## Configuration
 
-### API Settings
-
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Backend Port | 8000 | Model inference server |
-| Frontend Port | 8501 | Web interface |
-| Timeout | 60s | API request timeout |
-| Image Size | 224×224px | Model input size |
-
-### Changing Ports
-
-To use different ports, edit the configuration in the respective files:
-
-**Backend (fastapi_backend.py)**:
-```python
-uvicorn.run(app, host="0.0.0.0", port=8000)  # Change 8000 to your port
-```
-
-**Frontend (app.py)**:
-```python
-API_BASE_URL = "http://localhost:8000"  # Update if backend port changed
-```
-
-## Dependencies
-
-- **streamlit**: Web UI framework
-- **fastapi**: Backend API framework
-- **uvicorn**: ASGI server for FastAPI
-- **torch**: Deep learning framework
-- **torchvision**: Computer vision models and utilities
-- **pillow**: Image processing
-- **requests**: HTTP client for frontend-backend communication
-
-See `requirements.txt` for exact versions.
-
-## Model Training
-
-This model was trained using transfer learning:
-
-1. **Backbone**: ConvNeXT-Base pretrained on ImageNet
-2. **Head**: Custom linear classifier with 15 outputs
-3. **Training**: 8 epochs on the scene classification dataset
-4. **Validation**: Tested on held-out validation set
-
-The model achieves high accuracy on scene classification tasks because:
-- ConvNeXT learns good visual features from ImageNet
-- Fine-tuning adapts these features to scene understanding
-- 15 distinct scene categories have different visual characteristics
-
-## API Documentation
-
-How to access the API docs:
-
-1. Start the backend:
-   ```bash
-   python fastapi_backend.py
-   ```
-2. Open Swagger UI in your browser: [http://localhost:8000/docs](http://localhost:8000/docs)
-3. For a static markdown reference, check: [docs/api.md](docs/api.md)
-
-- Full endpoint reference: [docs/api.md](docs/api.md)
-- Interactive Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-## Streamlit Features
-
-- Sidebar backend monitor (reachable, model loaded, device, architecture, classes)
-- Toggle to switch between Top-1 and Top-K inference mode
-- Slider to control K value in Top-K mode
-- Ranked Top-K table with confidence percentages
-- Works for both uploaded images and random validation images
-
-## Tips & Tricks
-
-- **Faster inference**: Use a GPU - predictions are 5-10x faster
-- **Batch processing**: You can modify the backend to process multiple images
-- **Confidence threshold**: Adjust the UI to only show predictions above a certain confidence
-- **Dataset exploration**: Check the `dataset/validation/` folder to see example images
-
-## Future Improvements
-
-- [ ] Support for batch image processing
-- [ ] Model download automation
-- [ ] Different model architectures (ResNet, EfficientNet)
-- [ ] Real-time webcam classification
-- [ ] Explainability features (attention maps, saliency maps)
-- [ ] Docker containerization
-- [ ] Cloud deployment (AWS, Azure, Google Cloud)
+| Setting | Value |
+|---------|-------|
+| Backend port | 8000 |
+| Frontend port | 8501 |
+| Image input size | 224 × 224 px |
+| Batch size | 32 |
+| API timeout | 60 s |
 
 ## Troubleshooting
 
-### Port Already in Use
-
-If you get `error while attempting to bind on address ... Error 10048`:
-
-**Windows:**
+**Port already in use:**
 ```bash
-netstat -ano | findstr ":8000"              # Find process
-taskkill /PID <PID> /F                       # Kill it
-```
-
-**Linux/Mac:**
-```bash
+# macOS / Linux
 lsof -i :8000
 kill -9 <PID>
 ```
 
-### Backend Not Responding
+**Model not found:**  
+Ensure `models/convnext_base-8epoch.pt` exists. Download from the W&B artifacts or retrain with `scripts/sweep_train.py`.
 
-1. Check if backend is running on port 8000
-2. Verify model file exists at `models/convnext_base-8epoch.pt`
-3. Ensure GPU/CPU is available:
-  ```bash
-  python -c "import torch; print(torch.cuda.is_available())"
-  ```
+**Backend not responding:**
+```bash
+python -c "import torch; print(torch.cuda.is_available())"
+```
 
-### Streamlit Not Starting
+## Authors
 
-1. Ensure all dependencies are installed: `pip install -r requirements.txt`
-2. Check Python version is 3.8+: `python --version`
-3. Try running with explicit port: `streamlit run app.py --server.port 8501`
+- Javier Arroyo García
+- Julia Cano Flores
+- Paula Durá Fuster
 
----
-
-**Need help?** Check the troubleshooting section or review the code comments in `app.py` and `fastapi_backend.py`.
-
-## License
-
-This project is for educational purposes.
-
-## Author
-
-Created as part of Machine Learning II course at ICAI.
-Contributors:
-  - Javier Arroyo García - @javiarroyog
-  - Julia Cano Flores - @juliacanoflores
-  - Paula Durá Fuster - @paauladura
+ICAI · Machine Learning II · 2025–2026
