@@ -24,7 +24,6 @@ app.add_middleware(
 
 # Settings
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = "models/ConvNeXt-Small.pt"
 IMAGE_SIZE = 224
 
 CLASSES = [
@@ -32,6 +31,12 @@ CLASSES = [
     "Kitchen", "Living room", "Mountain", "Office", "Open country",
     "Store", "Street", "Suburb", "Tall building"
 ]
+
+MODEL_CONFIGS = {
+    "ConvNeXt-Small": {"path": "models/ConvNeXt-Small.pt", "arch": "convnext_small"},
+    "EfficientNetV2-S": {"path": "models/EfficientNetV2.pt", "arch": "efficientnet_v2_s"},
+}
+DEFAULT_MODEL = "ConvNeXt-Small"
 
 # Image preprocessing pipeline (must match training)
 transform = transforms.Compose([
@@ -41,56 +46,44 @@ transform = transforms.Compose([
 
 
 class SceneClassifier(nn.Module):
-    """Transfer learning classifier using ConvNeXT backbone."""
-    
-    def __init__(self, num_classes: int):
+    """Transfer learning classifier with pluggable backbone."""
+
+    def __init__(self, num_classes: int, arch: str = "convnext_small"):
         super().__init__()
-        base_model = torchvision.models.convnext_small(weights="DEFAULT")
+        builders = {
+            "convnext_small": torchvision.models.convnext_small,
+            "efficientnet_v2_s": torchvision.models.efficientnet_v2_s,
+        }
+        base_model = builders[arch](weights="DEFAULT")
         self.feature_extractor = nn.Sequential(*list(base_model.children())[:-1])
-        
+
         for param in self.feature_extractor.parameters():
             param.requires_grad = False
-        
+
         self.classifier = nn.Sequential(
             nn.Flatten(),
             nn.LazyLinear(num_classes)
         )
-    
+
     def forward(self, x):
-        x = self.feature_extractor(x)
-        return self.classifier(x)
+        return self.classifier(self.feature_extractor(x))
 
 
-def load_model() -> SceneClassifier | None:
-    """Load model from disk."""
+def load_model(path: str, arch: str) -> SceneClassifier | None:
+    """Load a model from disk."""
     try:
-        print("Loading model...")
-        
-        if not os.path.exists(MODEL_PATH):
-            print(f"Error: Model file not found at {MODEL_PATH}")
-            print(f"Working directory: {os.getcwd()}")
+        if not os.path.exists(path):
+            print(f"Model file not found: {path}")
             return None
-        
-        print(f"Model file found: {MODEL_PATH}")
-        model = SceneClassifier(len(CLASSES))
-        print("Model architecture created")
-        
-        weights = torch.load(MODEL_PATH, map_location=DEVICE)
-        print(f"Weights loaded from disk ({len(weights)} keys)")
-        
+        model = SceneClassifier(len(CLASSES), arch)
+        weights = torch.load(path, map_location=DEVICE)
         model.load_state_dict(weights, strict=False)
-        print("Weights assigned to model")
-        
         model.to(DEVICE)
         model.eval()
-        
-        print(f"Model ready for inference on {DEVICE}")
+        print(f"Loaded {arch} from {path}")
         return model
-    
     except Exception as e:
-        print(f"Error loading model: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"Error loading {path}: {e}")
         return None
 
 
@@ -101,150 +94,104 @@ def _decode_base64_image(image_str: str) -> torch.Tensor:
     return transform(image).unsqueeze(0).to(DEVICE)
 
 
-def _predict_topk(image_tensor: torch.Tensor, k: int = 1) -> list[dict]:
+def _predict_topk(image_tensor: torch.Tensor, model: SceneClassifier, k: int = 1) -> list[dict]:
     """Run inference and return top-k predictions with confidences."""
     k = max(1, min(k, len(CLASSES)))
     with torch.no_grad():
-        outputs = MODEL(image_tensor)
+        outputs = model(image_tensor)
         probabilities = torch.softmax(outputs, dim=1)
         confidences, indices = torch.topk(probabilities, k=k, dim=1)
 
-    predictions = []
-    for confidence, idx in zip(confidences[0].tolist(), indices[0].tolist()):
-        predictions.append({
-            "label": CLASSES[idx],
-            "confidence": round(float(confidence), 4)
-        })
-    return predictions
+    return [
+        {"label": CLASSES[idx], "confidence": round(float(conf), 4)}
+        for conf, idx in zip(confidences[0].tolist(), indices[0].tolist())
+    ]
 
 
-# Load model at startup
-MODEL = load_model()
+# Load all models at startup
+MODELS: dict[str, SceneClassifier | None] = {
+    name: load_model(cfg["path"], cfg["arch"])
+    for name, cfg in MODEL_CONFIGS.items()
+}
+
+
+def _resolve_model(name: str) -> SceneClassifier | None:
+    return MODELS.get(name) or MODELS.get(DEFAULT_MODEL)
 
 
 @app.get("/")
 async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "ok",
-        "model": "ConvNeXT-Small" if MODEL else "Not loaded"
-    }
+    loaded = [n for n, m in MODELS.items() if m is not None]
+    return {"status": "ok", "models_loaded": loaded}
 
 
 @app.get("/health")
 async def health():
-    """Detailed health endpoint for service and model readiness."""
     return {
         "status": "ok",
-        "model_loaded": MODEL is not None,
+        "models_loaded": {n: m is not None for n, m in MODELS.items()},
         "device": str(DEVICE)
     }
 
 
 @app.get("/classes")
 async def classes():
-    """Return the list of class labels used by the model."""
-    return {
-        "status": "ok",
-        "num_classes": len(CLASSES),
-        "classes": CLASSES
-    }
+    return {"status": "ok", "num_classes": len(CLASSES), "classes": CLASSES}
 
 
 @app.get("/model-info")
 async def model_info():
-    """Return metadata about the loaded model and runtime config."""
     return {
         "status": "ok",
-        "architecture": "ConvNeXT-Small",
+        "available_models": list(MODEL_CONFIGS.keys()),
+        "default_model": DEFAULT_MODEL,
         "input_size": [IMAGE_SIZE, IMAGE_SIZE],
         "num_classes": len(CLASSES),
-        "model_path": MODEL_PATH,
-        "model_loaded": MODEL is not None,
         "device": str(DEVICE)
     }
 
 
 @app.post("/predict")
 async def predict(data: dict):
-    """Predict scene class from Base64 encoded image."""
-    if MODEL is None:
-        return {
-            "status": "error",
-            "label": "Error",
-            "confidence": 0.0,
-            "message": "Model not loaded"
-        }
-    
+    model_name = data.get("model", DEFAULT_MODEL)
+    model = _resolve_model(model_name)
+    if model is None:
+        return {"status": "error", "label": "Error", "confidence": 0.0, "message": "Model not loaded"}
+
     try:
         image_str = data.get("image", "")
         filename = data.get("filename", "image.jpg")
-        
         if not image_str:
-            return {
-                "status": "error",
-                "label": "Error",
-                "confidence": 0.0,
-                "message": "No image data provided"
-            }
+            return {"status": "error", "label": "Error", "confidence": 0.0, "message": "No image data provided"}
 
         image_tensor = _decode_base64_image(image_str)
-        top_prediction = _predict_topk(image_tensor, k=1)[0]
-        
-        return {
-            "status": "success",
-            "label": top_prediction["label"],
-            "confidence": top_prediction["confidence"],
-            "filename": filename
-        }
-    
+        top = _predict_topk(image_tensor, model, k=1)[0]
+        return {"status": "success", "label": top["label"], "confidence": top["confidence"], "filename": filename, "model": model_name}
+
     except Exception as e:
-        return {
-            "status": "error",
-            "label": "Error",
-            "confidence": 0.0,
-            "message": str(e)
-        }
+        return {"status": "error", "label": "Error", "confidence": 0.0, "message": str(e)}
 
 
 @app.post("/predict-topk")
 async def predict_topk(data: dict):
-    """Predict top-k classes from Base64 encoded image."""
-    if MODEL is None:
-        return {
-            "status": "error",
-            "predictions": [],
-            "message": "Model not loaded"
-        }
+    model_name = data.get("model", DEFAULT_MODEL)
+    model = _resolve_model(model_name)
+    if model is None:
+        return {"status": "error", "predictions": [], "message": "Model not loaded"}
 
     try:
         image_str = data.get("image", "")
         filename = data.get("filename", "image.jpg")
         k = int(data.get("k", 3))
-
         if not image_str:
-            return {
-                "status": "error",
-                "predictions": [],
-                "message": "No image data provided"
-            }
+            return {"status": "error", "predictions": [], "message": "No image data provided"}
 
         image_tensor = _decode_base64_image(image_str)
-        predictions = _predict_topk(image_tensor, k=k)
-
-        return {
-            "status": "success",
-            "filename": filename,
-            "k": len(predictions),
-            "predictions": predictions
-        }
+        predictions = _predict_topk(image_tensor, model, k=k)
+        return {"status": "success", "filename": filename, "k": len(predictions), "predictions": predictions, "model": model_name}
 
     except Exception as e:
-        return {
-            "status": "error",
-            "predictions": [],
-            "message": str(e)
-        }
+        return {"status": "error", "predictions": [], "message": str(e)}
 
 
 if __name__ == "__main__":

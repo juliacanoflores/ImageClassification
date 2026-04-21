@@ -70,11 +70,12 @@ def image_to_base64(image: Image.Image) -> str:
     return base64.b64encode(buffer.getvalue()).decode()
 
 
-def send_to_api(image: Image.Image, filename: str) -> dict:
+def send_to_api(image: Image.Image, filename: str, model: str = "ConvNeXt-Small") -> dict:
     try:
         payload = {
             "image": image_to_base64(image),
-            "filename": filename
+            "filename": filename,
+            "model": model
         }
         response = requests.post(API_PREDICT_URL, json=payload, timeout=TIMEOUT)
         return response.json()
@@ -94,12 +95,13 @@ def send_to_api(image: Image.Image, filename: str) -> dict:
         }
 
 
-def send_to_api_topk(image: Image.Image, filename: str, k: int) -> dict:
+def send_to_api_topk(image: Image.Image, filename: str, k: int, model: str = "ConvNeXt-Small") -> dict:
     try:
         payload = {
             "image": image_to_base64(image),
             "filename": filename,
-            "k": int(k)
+            "k": int(k),
+            "model": model
         }
         response = requests.post(API_PREDICT_TOPK_URL, json=payload, timeout=TIMEOUT)
         return response.json()
@@ -196,6 +198,12 @@ with st.sidebar:
     st.write(f"Classes: {model_info_payload.get('num_classes', len(scene_classes))}")
 
     st.divider()
+    selected_model = st.selectbox(
+        "Model",
+        options=["ConvNeXt-Small", "EfficientNetV2-S"],
+        index=0,
+        help="ConvNeXt-Small: 96.47% acc · EfficientNetV2-S: 96.00% acc (faster)"
+    )
     use_topk = st.toggle("Use Top-K prediction", value=True)
     topk_value = st.slider("K value", min_value=2, max_value=min(10, len(scene_classes)), value=min(3, len(scene_classes)))
 
@@ -218,10 +226,10 @@ with tab1:
             if st.button("Classify", key="btn_upload"):
                 with st.spinner("Analyzing..."):
                     if use_topk:
-                        result = send_to_api_topk(image, uploaded_file.name, topk_value)
+                        result = send_to_api_topk(image, uploaded_file.name, topk_value, selected_model)
                         display_topk_predictions(result)
                     else:
-                        result = send_to_api(image, uploaded_file.name)
+                        result = send_to_api(image, uploaded_file.name, selected_model)
                         display_prediction(result)
 
 
@@ -248,11 +256,11 @@ with tab2:
             if st.button("Classify", key="btn_random"):
                 with st.spinner("Analyzing..."):
                     if use_topk:
-                        result = send_to_api_topk(image, os.path.basename(st.session_state.random_path), topk_value)
+                        result = send_to_api_topk(image, os.path.basename(st.session_state.random_path), topk_value, selected_model)
                         display_topk_predictions(result)
                         predicted_label = result.get("predictions", [{}])[0].get("label", "") if result.get("status") == "success" else ""
                     else:
-                        result = send_to_api(image, os.path.basename(st.session_state.random_path))
+                        result = send_to_api(image, os.path.basename(st.session_state.random_path), selected_model)
                         display_prediction(result)
                         predicted_label = result.get("label", "") if result.get("status") == "success" else ""
 
