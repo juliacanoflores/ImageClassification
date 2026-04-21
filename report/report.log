@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  21 APR 2026 17:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  21 APR 2026 19:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -614,10 +614,6 @@ LaTeX Info: Redefining \% on input line 11.
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `report.out' has not changed.
 (rerunfilecheck)             Checksum: BF7DD234B0B6B25F69152399C3CC0D07;3715.
  ) 
