@@ -24,7 +24,7 @@ app.add_middleware(
 
 # Settings
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = "models/convnext_base-8epoch.pt"
+MODEL_PATH = "models/ConvNeXt-Small.pt"
 IMAGE_SIZE = 224
 
 CLASSES = [
@@ -45,7 +45,7 @@ class SceneClassifier(nn.Module):
     
     def __init__(self, num_classes: int):
         super().__init__()
-        base_model = torchvision.models.convnext_base(weights="DEFAULT")
+        base_model = torchvision.models.convnext_small(weights="DEFAULT")
         self.feature_extractor = nn.Sequential(*list(base_model.children())[:-1])
         
         for param in self.feature_extractor.parameters():
@@ -127,7 +127,7 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "ok",
-        "model": "ConvNeXT-Base" if MODEL else "Not loaded"
+        "model": "ConvNeXT-Small" if MODEL else "Not loaded"
     }
 
 
@@ -156,7 +156,7 @@ async def model_info():
     """Return metadata about the loaded model and runtime config."""
     return {
         "status": "ok",
-        "architecture": "ConvNeXT-Base",
+        "architecture": "ConvNeXT-Small",
         "input_size": [IMAGE_SIZE, IMAGE_SIZE],
         "num_classes": len(CLASSES),
         "model_path": MODEL_PATH,
