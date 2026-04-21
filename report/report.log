@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  20 APR 2026 17:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  21 APR 2026 17:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -422,7 +422,10 @@ File: l3backend-pdftex.def 2024-02-20 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count301
 \l__pdf_internal_box=\box56
 )
-No file report.aux.
+(./report.aux
+LaTeX Info: Redefining \. on input line 11.
+LaTeX Info: Redefining \% on input line 11.
+)
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
@@ -445,6 +448,7 @@ LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 22.
 LaTeX Font Info:    ... okay on input line 22.
 LaTeX Info: Redefining \. on input line 22.
 LaTeX Info: Redefining \% on input line 22.
+
 (/usr/local/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count302
@@ -468,6 +472,8 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 Package hyperref Info: Link coloring OFF on input line 22.
+
+(./report.out) (./report.out)
 \@outlinefile=\write3
 \openout3 = `report.out'.
 
@@ -579,37 +585,18 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
 
 {/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
 al/texlive/2024/texmf-dist/fonts/enc/dvips/base/8r.enc}]) (./sections/03_sweep.
-tex [2]
+tex
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `cmtt' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 
-10.
-LaTeX Font Info:    No file OMScmtt.fd. on input line 10.
-
-
-LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
-(Font)              using `OMS/cmsy/m/n' instead
-(Font)              for symbol `textbraceleft' on input line 10.
-
-
-LaTeX Warning: Reference `fig:training-curves' on page 3 undefined on input lin
-e 23.
-
-
-LaTeX Warning: Reference `tab:sweep-resultados' on page 3 undefined on input li
-ne 23.
-
-<imagenes/training_curves.png, id=28, 2537.48pt x 1332.98pt>
+ [2]
+<imagenes/training_curves.png, id=88, 2537.48pt x 1332.98pt>
 File: imagenes/training_curves.png Graphic file (type png)
 <use imagenes/training_curves.png>
-Package pdftex.def Info: imagenes/training_curves.png  used on input line 27.
+Package pdftex.def Info: imagenes/training_curves.png  used on input line 24.
 (pdftex.def)             Requested size: 377.97006pt x 198.53494pt.
-
-LaTeX Warning: Reference `tab:top-runs' on page 3 undefined on input line 32.
-
-[3 <./imagenes/training_curves.png>]) (./sections/04_seleccion_despliegue.tex
+ [3 <./imagenes/training_curves.png>]) (./sections/04_seleccion_despliegue.tex 
 [4]
 Overfull \hbox (14.81432pt too wide) in paragraph at lines 17--18
 []\OT1/cmtt/m/n/10.95 GET /health \OT1/ptm/m/n/10.95 (-20) | health check de-ta
@@ -618,15 +605,8 @@ mtt/m/n/10.95 model[]loaded \OT1/ptm/m/n/10.95 (-20) y \OT1/cmtt/m/n/10.95 devi
 ce \OT1/ptm/m/n/10.95 (-20) (CPU/GPU). 
  []
 
-[5]
-<imagenes/confusion_matrix_convnext.png, id=57, 559.3698pt x 498.663pt>
-File: imagenes/confusion_matrix_convnext.png Graphic file (type png)
-<use imagenes/confusion_matrix_convnext.png>
-Package pdftex.def Info: imagenes/confusion_matrix_convnext.png  used on input 
-line 37.
-(pdftex.def)             Requested size: 377.97006pt x 336.96344pt.
-) (./sections/05_reproducibilidad.tex) (./sections/06_conclusiones.tex
-[6 <./imagenes/confusion_matrix_convnext.png>]) [7] (./report.aux
+) (./sections/05_reproducibilidad.tex [5]) (./sections/06_conclusiones.tex)
+[6] (./report.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -636,43 +616,30 @@ L3 programming layer <2024-02-20>
  ***********
 
 
-LaTeX Font Warning: Some font shapes were not available, defaults substituted.
-
-
-LaTeX Warning: There were undefined references.
-
-
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
-
-Package rerunfilecheck Warning: File `report.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `report.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  BF7DD234B0B6B25F69152399C3CC0D07;3715.
+Package rerunfilecheck Info: File `report.out' has not changed.
+(rerunfilecheck)             Checksum: BF7DD234B0B6B25F69152399C3CC0D07;3715.
  ) 
 Here is how much of TeX's memory you used:
- 14852 strings out of 474116
- 240096 string characters out of 5743682
+ 14839 strings out of 474116
+ 239672 string characters out of 5743682
  1945187 words of memory out of 5000000
- 36738 multiletter control sequences out of 15000+600000
- 600536 words of font info for 255 fonts, out of 8000000 for 9000
+ 36728 multiletter control sequences out of 15000+600000
+ 600130 words of font info for 250 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,10n,79p,1003b,543s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,10n,79p,1003b,545s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><
 /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></
 usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></u
-sr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr
-/local/texlive/2024/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/tex
-live/2024/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2024/
-texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report.pdf (7 pages, 379263 bytes).
+sr/local/texlive/2024/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/t
+exlive/2024/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/202
+4/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on report.pdf (6 pages, 296883 bytes).
 PDF statistics:
- 115 PDF objects out of 1000 (max. 8388607)
- 85 compressed objects within 1 object stream
- 32 named destinations out of 1000 (max. 500000)
- 61451 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 153 PDF objects out of 1000 (max. 8388607)
+ 127 compressed objects within 2 object streams
+ 30 named destinations out of 1000 (max. 500000)
+ 61062 words of extra memory for PDF output out of 61914 (max. 10000000)
 

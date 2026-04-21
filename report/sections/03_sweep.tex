@@ -2,12 +2,7 @@
 
 \subsection{Diseño experimental y tracking en W\&B}
 
-Para la fase 2 se diseñaron tres sweeps independientes en W\&B, uno por modelo, con \textbf{optimización bayesiana}.
-La razón de mantener sweeps separados por modelo, en lugar de un único sweep combinado, es preservar la capacidad comparativa: al tener el mismo presupuesto de ejecuciones para cada arquitectura, ningún modelo queda infrarrepresentado en la búsqueda. Esto permite afirmar que el ranking final refleja el potencial real de cada enfoque bajo una exploración equivalente, y no un sesgo introducido por haber buscado más en unos que en otros.
-
-Se ejecutaron \textbf{12 runs por modelo} (36 en total), con semilla fija (42).
-
-Cada run sigue la convención de nombres \texttt{\{modelo\}\_lr\{lr\_head\}\_wd\{wd\}\_unfreeze\{n\}\_\{optim\}} y se etiqueta con el modelo correspondiente para facilitar el filtrado en W\&B. Por cada run se registraron: \texttt{train/loss}, \texttt{val/loss}, \texttt{val/acc} y \texttt{val/f1\_macro} por época, el tiempo por época, la configuración completa de hiperparámetros y el mejor checkpoint. Al finalizar, se guarda la matriz de confusión sobre el conjunto de validación para el checkpoint restaurado.
+Se diseñaron tres sweeps independientes en W\&B con \textbf{optimización bayesiana}, uno por modelo, ejecutando \textbf{12 runs cada uno} (36 en total) con semilla fija (42). Mantener sweeps separados garantiza el mismo presupuesto de búsqueda por arquitectura, de modo que el ranking final refleja el potencial real de cada enfoque. Por cada run se registraron métricas por época (\texttt{val/acc}, \texttt{val/f1\_macro}, pérdidas y tiempo), la configuración completa y el mejor checkpoint como artefacto en W\&B.
 
 El espacio de búsqueda fue el mismo para los tres modelos:
 
@@ -20,7 +15,9 @@ El espacio de búsqueda fue el mismo para los tres modelos:
 
 \subsection{Resultados del sweep}
 
-La Figura~\ref{fig:training-curves} muestra la evolución de la accuracy de validación por época para el mejor run de cada modelo. La Tabla~\ref{tab:sweep-resultados} recoge la mejor configuración encontrada.
+La Figura~\ref{fig:training-curves} muestra la evolución de la accuracy de validación por época para el mejor run de cada modelo. Las curvas revelan dinámicas de aprendizaje muy distintas: Swin-T arranca desde el valor más alto ($\sim$0.88) y converge en pocas épocas, pero se estanca en torno al 92\%. EfficientNetV2-S parte muy bajo ($\sim$0.45) con el backbone congelado y experimenta un salto brusco de más de 20~pp en la transición a la fase de fine-tuning ($\sim$época~5), alcanzando finalmente el 96\%. ConvNeXt-Small presenta la progresión más sostenida: arranca en $\sim$0.81 y acumula mejoras época a época hasta liderar con 96.47\%. Las tres curvas ilustran una \textit{inversión del ranking}: Swin-T parte en cabeza y termina último, evidenciando que su ventaja inicial se diluye cuando los modelos convolucionales disponen de más épocas de ajuste.
+
+La Tabla~\ref{tab:sweep-resultados} recoge la mejor configuración encontrada para cada arquitectura.
 
 \begin{figure}[H]
     \centering

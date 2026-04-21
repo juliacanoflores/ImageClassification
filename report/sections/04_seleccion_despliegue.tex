@@ -20,7 +20,7 @@ El servicio de inferencia en producción está compuesto por dos componentes ind
         \item \texttt{POST /predict} — recibe una imagen en base64 y devuelve la clase predicha, la confianza y el nombre de fichero.
         \item \texttt{POST /predict-topk} — recibe una imagen en base64 y el parámetro \texttt{k}; devuelve las \textit{k} clases más probables con sus confidencias, permitiendo al frontend mostrar la distribución completa de predicciones.
     \end{itemize}
-    Todos los endpoints devuelven JSON con un campo \texttt{status} (\texttt{"success"} o \texttt{"error"}) y un mensaje descriptivo en caso de fallo. La documentación interactiva (Swagger UI) está disponible en \texttt{/docs} y la estática en \texttt{docs/api.md}.
+    La documentación interactiva (Swagger UI) está disponible en \texttt{/docs} y la estática en \texttt{docs/api.md}.
     \item \textbf{Frontend (Streamlit):} interfaz web que permite cargar imágenes locales o por URL, muestra la predicción principal con su nivel de confianza y visualiza la distribución de probabilidad sobre las 15 clases mediante gráfico de barras interactivo.
 \end{itemize}
 
@@ -28,15 +28,6 @@ El servicio de inferencia en producción está compuesto por dos componentes ind
 
 Al finalizar cada run, el script registra automáticamente en W\&B la matriz de confusión sobre el conjunto de validación, vinculada al checkpoint y configuración exactos de ese run. Esto permite un análisis de errores trazable y reproducible.
 
-Del análisis comparativo de las tres matrices se desprenden patrones consistentes. Las clases con mayor accuracy son las de apariencia más distintiva: \textit{Highway} y \textit{Suburb} alcanzan el 100\% en los tres modelos; \textit{Coast}, \textit{Mountain} y \textit{Office} se sitúan sistemáticamente por encima del 96\%. En el extremo opuesto, \textit{Open country} es la clase más difícil en todos los modelos (ConvNeXt-Small: 87\%, EfficientNetV2-S: 90\%, Swin-T: 75\%), confundiéndose principalmente con \textit{Coast} y \textit{Mountain} — escenas naturales sin elementos urbanos que sirvan de referencia visual inequívoca. La pareja \textit{Inside city}/\textit{Street} genera también errores sistemáticos por la similitud de ambas escenas urbanas.
+Del análisis de las matrices de confusión se desprenden patrones consistentes: \textit{Highway} y \textit{Suburb} alcanzan el 100\% en los tres modelos, mientras que \textit{Open country} es la clase más difícil (ConvNeXt-Small: 87\%, Swin-T: 75\%), confundiéndose principalmente con \textit{Coast} y \textit{Mountain}. La mayor diferencia entre modelos aparece en clases interiores: Swin-T clasifica \textit{Bedroom} con solo un 78\% (16/100 confundidas con \textit{Living room}), frente al 94\%+ de ConvNeXt-Small y EfficientNetV2-S, lo que explica la brecha de 4~pp en F1 macro.
 
-La diferencia entre modelos se hace más evidente en las clases interiores: Swin-T clasifica \textit{Bedroom} con solo un 78\% de accuracy (confundiendo 16 de 100 imágenes con \textit{Living room}), mientras que ConvNeXt-Small y EfficientNetV2-S superan el 94\% en esa misma clase. Este patrón explica la brecha de 4 pp en F1 macro entre Swin-T y los otros dos modelos.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.82\linewidth]{imagenes/confusion_matrix_convnext.png}
-    \caption{Matriz de confusión — ConvNeXt-Small (mejor run, conjunto de validación).}
-    \label{fig:cm-convnext}
-\end{figure}
-
-En conjunto, el F1 macro de 96.47\% de ConvNeXt-Small supera ampliamente el umbral de éxito ($\geq 80\%$). Los errores residuales se concentran en pares de clases ambiguos incluso para un observador humano, lo que los hace aceptables para el caso de uso previsto. Desde el punto de vista operativo, la latencia de inferencia es del orden de milisegundos por imagen en GPU, lo que hace viable la integración en el flujo de publicación sin impacto perceptible para el usuario.
+El F1 macro de 96.47\% de ConvNeXt-Small supera ampliamente el umbral de éxito ($\geq 80\%$) y los errores residuales se concentran en pares de clases ambiguos incluso para un observador humano, lo que los hace aceptables para el caso de uso previsto.
