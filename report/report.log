@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  21 APR 2026 19:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.4.15)  22 APR 2026 18:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -605,8 +605,14 @@ mtt/m/n/10.95 model[]loaded \OT1/ptm/m/n/10.95 (-20) y \OT1/cmtt/m/n/10.95 devi
 ce \OT1/ptm/m/n/10.95 (-20) (CPU/GPU). 
  []
 
-) (./sections/05_reproducibilidad.tex [5]) (./sections/06_conclusiones.tex)
-[6] (./report.aux
+) (./sections/05_reproducibilidad.tex
+Overfull \hbox (41.8621pt too wide) in paragraph at lines 3--4
+\OT1/ptm/m/n/10.95 (-20) El c[]odi-go fuen-te com-ple-to est[]a dis-po-ni-ble e
+n []$\OT1/cmtt/m/n/10.95 https : / / github . com / juliacanoflores / ImageClas
+sification$[]\OT1/ptm/m/n/10.95 (-20) .
+ []
+
+[5]) (./sections/06_conclusiones.tex) [6] (./report.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -618,11 +624,11 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 (rerunfilecheck)             Checksum: BF7DD234B0B6B25F69152399C3CC0D07;3715.
  ) 
 Here is how much of TeX's memory you used:
- 14839 strings out of 474116
- 239672 string characters out of 5743682
+ 14845 strings out of 474116
+ 239723 string characters out of 5743682
  1945187 words of memory out of 5000000
  36728 multiletter control sequences out of 15000+600000
- 600130 words of font info for 250 fonts, out of 8000000 for 9000
+ 600368 words of font info for 254 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,10n,79p,1003b,545s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
@@ -632,10 +638,10 @@ usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></u
 sr/local/texlive/2024/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/t
 exlive/2024/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/202
 4/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report.pdf (6 pages, 296883 bytes).
+Output written on report.pdf (6 pages, 297770 bytes).
 PDF statistics:
- 153 PDF objects out of 1000 (max. 8388607)
- 127 compressed objects within 2 object streams
+ 154 PDF objects out of 1000 (max. 8388607)
+ 128 compressed objects within 2 object streams
  30 named destinations out of 1000 (max. 500000)
  61062 words of extra memory for PDF output out of 61914 (max. 10000000)
 

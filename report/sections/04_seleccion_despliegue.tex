@@ -21,7 +21,7 @@ El servicio de inferencia en producción está compuesto por dos componentes ind
         \item \texttt{POST /predict-topk} — recibe una imagen en base64 y el parámetro \texttt{k}; devuelve las \textit{k} clases más probables con sus confidencias, permitiendo al frontend mostrar la distribución completa de predicciones.
     \end{itemize}
     La documentación interactiva (Swagger UI) está disponible en \texttt{/docs} y la estática en \texttt{docs/api.md}.
-    \item \textbf{Frontend (Streamlit):} interfaz web que permite cargar imágenes locales o por URL, muestra la predicción principal con su nivel de confianza y visualiza la distribución de probabilidad sobre las 15 clases mediante gráfico de barras interactivo.
+    \item \textbf{Frontend (Streamlit):} interfaz web que permite cargar imágenes locales o por URL, muestra la predicción principal con su nivel de confianza y visualiza la distribución de probabilidad sobre las 15 clases mediante gráfico de barras interactivo. Incluye un selector en la barra lateral para alternar entre ConvNeXt-Small y EfficientNetV2-S sin necesidad de reiniciar el backend, ya que ambos modelos se cargan en memoria al arranque.
 \end{itemize}
 
 \subsection{Rendimiento por clase y viabilidad operativa}
