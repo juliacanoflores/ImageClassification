@@ -33,19 +33,33 @@ Bedroom · Coast · Forest · Highway · Industrial · Inside city · Kitchen ·
 
 Both models are loaded at backend startup. The frontend lets you switch between them at inference time with no restart required.
 
-## Quick Start
+## Reproducible Setup
+
+All experiments use **seed 42** (fixed across `torch`, `numpy`, and `random`). The full environment is pinned in `requirements.txt` (Python 3.12, PyTorch 2.2.1, torchvision 0.17.1).
 
 ```bash
-# 1. Install dependencies
+# 1. Clone the repository
+git clone https://github.com/juliacanoflores/ImageClassification.git
+cd ImageClassification
+
+# 2. Create and activate a virtual environment (recommended)
+python -m venv .venv && source .venv/bin/activate   # macOS/Linux
+# python -m venv .venv && .venv\Scripts\activate    # Windows
+
+# 3. Install exact dependencies
 pip install -r requirements.txt
 
-# 2. Start backend (terminal 1)
+# 4. Download trained model weights
+wandb artifact get javi_paula_julia/image-classification/best-ConvNeXt-Small:latest --root models/
+wandb artifact get javi_paula_julia/image-classification/best-EfficientNetV2-S:latest --root models/
+
+# 5. Start the backend (terminal 1)
 python src/fastapi_backend.py
 
-# 3. Start frontend (terminal 2)
+# 6. Start the frontend (terminal 2)
 streamlit run src/app.py
 
-# 4. Open http://localhost:8501
+# 7. Open http://localhost:8501
 ```
 
 API docs (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)  
@@ -83,24 +97,19 @@ ImageClassification/
 │   ├── fastapi_backend.py    # FastAPI backend (both models)
 │   └── cnn.py                # CNN class + training utilities
 ├── requirements.txt          # Python dependencies
-│
 ├── scripts/
 │   ├── sweep_train.py        # Single-run training function (W&B agent)
 │   ├── launch_sweeps.py      # Create and launch W&B sweeps
 │   └── analyze_results.py    # Parse results.csv and print comparison table
-│
 ├── models/
 │   ├── ConvNeXt-Small.pt     # Best ConvNeXt-Small weights (96.47%)
 │   └── EfficientNetV2.pt     # Best EfficientNetV2-S weights (96.00%)
-│
 ├── dataset/
 │   ├── training/             # 2,985 training images (15 classes)
 │   └── validation/           # 1,500 validation images (15 classes)
-│
-├── confusion_matrix/         # Per-model confusion matrices (CSV from W&B)
+├── data/confusion_matrix/    # Per-model confusion matrices (CSV from W&B)
 ├── report/                   # LaTeX technical report
-└── docs/
-    └── api.md                # Static API documentation
+└── docs/api.md               # Static API documentation
 ```
 
 ## Models
@@ -111,63 +120,24 @@ ImageClassification/
 | EfficientNetV2-S | 96.00% | 96.00% | 43.5 | 2.3× faster, recommended for CPU/serverless |
 | Swin-T | 92.27% | 92.21% | 26.6 | Baseline only, not served |
 
-Training uses a **two-phase transfer learning** strategy:
-
-- **Phase 1 — Warmup:** backbone frozen, only the classification head trains.
-- **Phase 2 — Fine-tuning:** last N backbone blocks unfrozen with discriminative learning rates (`lr_backbone` ≪ `lr_head`).
-
-Hyperparameter search: **Bayesian optimisation** via W&B sweeps (12 runs per model, 36 total). Key findings: AdamW beats SGD consistently; unfreezing 3 blocks is optimal; `weight_decay ≥ 0.05` improves generalisation.
+Training uses a **two-phase transfer learning** strategy: backbone frozen during warmup, then last N blocks unfrozen with discriminative learning rates (`lr_backbone` ≪ `lr_head`). Hyperparameter search via **Bayesian optimisation** (W&B sweeps, 12 runs per model, 36 total).
 
 ### Reproducing the sweep
 
 ```bash
-# Create the 3 W&B sweeps (no GPU needed)
-python scripts/launch_sweeps.py --create-only
-
-# Run agents (requires GPU)
-python scripts/launch_sweeps.py --count 12
-
-# Single model
-python scripts/launch_sweeps.py --model ConvNeXt-Small --count 12
-
-# Resume existing sweep by ID
-python scripts/launch_sweeps.py --sweep-id <id> --model <name> --count 12
+python scripts/launch_sweeps.py --create-only   # create sweeps (no GPU needed)
+python scripts/launch_sweeps.py --count 12       # run all agents (requires GPU)
+python scripts/launch_sweeps.py --model ConvNeXt-Small --count 12  # single model
 ```
-
-### Downloading trained weights
-
-```bash
-wandb artifact get javi_paula_julia/image-classification/best-ConvNeXt-Small:latest --root models/
-wandb artifact get javi_paula_julia/image-classification/best-EfficientNetV2-S:latest --root models/
-```
-
-## Reproducibility
-
-- Seed: **42** (fixed in `torch`, `torch.cuda`, `numpy`, `random`)
-- Environment: Python 3.12, Lightning AI GPU (T4)
-- Exact dependency versions: see `requirements.txt`
-- Best checkpoints stored as versioned W&B artifacts
-
-## Configuration
-
-| Setting | Value |
-|---------|-------|
-| Backend port | 8000 |
-| Frontend port | 8501 |
-| Image input size | 224 × 224 px |
-| Batch size | 32 |
-| API timeout | 60 s |
 
 ## Troubleshooting
 
 **Port already in use:**
 ```bash
-lsof -i :8000
-kill -9 <PID>
+lsof -i :8000 && kill -9 <PID>
 ```
 
-**Model not found:**  
-Ensure `models/ConvNeXt-Small.pt` and `models/EfficientNetV2.pt` exist. Download with the `wandb artifact get` commands above.
+**Model not found:** download weights with the `wandb artifact get` commands in step 4 above.
 
 **Backend not responding:**
 ```bash
