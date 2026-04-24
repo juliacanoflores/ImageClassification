@@ -57,7 +57,8 @@ wandb artifact get javi_paula_julia/image-classification/best-EfficientNetV2-S:l
 python src/fastapi_backend.py
 
 # 6. Start the frontend (terminal 2)
-streamlit run src/app.py
+streamlit run src/app.py        # original
+streamlit run src/app_v2.py     # redesigned UI (dark theme, confidence bars)
 
 # 7. Open http://localhost:8501
 ```
