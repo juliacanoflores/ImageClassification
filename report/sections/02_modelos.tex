@@ -38,3 +38,7 @@ La idea central del transfer learning es no partir de cero. Los modelos ya han a
 \end{table}
 
 Swin-T lidera el baseline con 91.1\% de accuracy y la menor pérdida de validación, lo que indica que sus representaciones preentrenadas son más directamente transferibles a este dominio. Los tres modelos superan ya el criterio de éxito mínimo (80\%) con el backbone congelado, confirmando la calidad de los pesos preentrenados en ImageNet para escenas interiores.
+
+\subsection{Arquitectura de la red desplegada en el API}
+
+Los tres modelos comparten la misma estructura de red en el servicio de inferencia: un \textbf{backbone preentrenado} (ConvNeXt-Small, EfficientNetV2-S o Swin-T según el modelo seleccionado) del que se elimina la cabeza de clasificación original, seguido de una \textbf{capa \texttt{Flatten}} y una \textbf{capa lineal} (\texttt{LazyLinear}) con 15 salidas —una por categoría de escena. La inicialización perezosa de la capa lineal permite reutilizar el mismo código independientemente del tamaño del vector de características de cada backbone. Durante la inferencia, las activaciones de salida se convierten en probabilidades mediante \texttt{softmax} y se devuelven ordenadas por confianza al cliente.

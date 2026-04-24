@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1776873689.08512 "/Users/javi/Desktop/ICAI/2Cuatri/MLII/DeepLearning/praticas/ImageClassification/report/report.tex" "report.pdf" "report" 1776873691.17321 0
+["pdflatex"] 1777018686.1809 "/Users/javi/Desktop/ICAI/2Cuatri/MLII/DeepLearning/praticas/ImageClassification/report/report.tex" "report.pdf" "report" 1777018688.26586 0
   "/Users/javi/Desktop/ICAI/2Cuatri/MLII/DeepLearning/praticas/ImageClassification/report/report.tex" 1776700527.24824 840 92811f01bc87795d940a6455c53588a2 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -109,15 +109,15 @@
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1713183989 8221428 6aaf961cc58b391f0683c566cf9c6604 ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
   "imagenes/training_curves.png" 1776700553.69473 324839 79f078d6b33fda6d9fddf380ba88cc33 ""
-  "report.aux" 1776873690.95941 3763 a69282ab3a6bcc95291896fc35ce64df "pdflatex"
-  "report.out" 1776873690.96162 3715 bf7dd234b0b6b25f69152399c3cc0d07 "pdflatex"
+  "report.aux" 1777018688.04695 3984 e2c38595f7ff0b2fb539b24bedf926d5 "pdflatex"
+  "report.out" 1777018688.05149 4009 79bb7bda36a845c6f18dac81d9e44bef "pdflatex"
   "report.tex" 1776700527.24824 840 92811f01bc87795d940a6455c53588a2 ""
-  "sections/01_introduccion.tex" 1776786575.61491 1930 ffac849a8db14c61fb7ebb374e62a889 ""
-  "sections/02_modelos.tex" 1776700424.20776 4623 241aae2fbaea27589b06514eccaceca6 ""
-  "sections/03_sweep.tex" 1776786687.2821 6709 23a46568d5eb0f0928804b710a9933e5 ""
-  "sections/04_seleccion_despliegue.tex" 1776873688.12454 3728 b04b2d9f166bcccfaf6949804c1378e2 ""
-  "sections/05_reproducibilidad.tex" 1776793615.56226 832 b80ada440cb79f2301e54adda816bb86 ""
-  "sections/06_conclusiones.tex" 1776700519.57899 1499 521448939e92f0c1d69e2055a4425a45 ""
+  "sections/01_introduccion.tex" 1776962190.46712 2118 c3d6b328896ba6b20ba0628837a49192 ""
+  "sections/02_modelos.tex" 1776934851.01639 5395 94ea068fd969c266db2458da0ed8b5c2 ""
+  "sections/03_sweep.tex" 1776961870.90588 3870 12bbe53d61ed32dc78080ae2c8401600 ""
+  "sections/04_seleccion_despliegue.tex" 1776935052.61906 4499 2ec3c14a63c366930d749a0a6a6266aa ""
+  "sections/05_reproducibilidad.tex" 1777018685.80373 935 811a89c737692d59fdf9e47ae5266071 ""
+  "sections/06_conclusiones.tex" 1776962071.25723 1284 a1bae55ce9a577829489478604bdad4c ""
   (generated)
   "report.aux"
   "report.log"

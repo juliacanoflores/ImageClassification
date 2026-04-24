@@ -4,4 +4,4 @@ El transfer learning sobre arquitecturas modernas preentrenadas permite alcanzar
 
 \textbf{Recomendación operativa:} desplegar ConvNeXt-Small para máxima precisión, o EfficientNetV2-S cuando la latencia o el coste de inferencia sean críticos. La diferencia de accuracy entre ambos es marginal (0.47 pp), mientras que la diferencia de coste computacional es significativa ($2.3\times$). Para un marketplace con alto volumen de imágenes diarias, EfficientNetV2-S ofrece el mejor balance coste-beneficio.
 
-\textbf{Mejoras futuras:} (1) data augmentation más agresiva (mixup, cutmix) para reducir la varianza y mejorar robustez ante imágenes atípicas; (2) ensemble de ConvNeXt-Small y EfficientNetV2-S por votación suave; (3) calibración de confianza (\textit{temperature scaling}) para salidas probabilísticas más fiables; (4) fine-tuning completo del backbone con scheduler cíclico (\textit{cosine annealing with warm restarts}).
+\textbf{Mejoras futuras:} (1) data augmentation más agresiva (mixup, cutmix) para reducir la varianza y mejorar robustez ante imágenes atípicas; (2) ensemble de ConvNeXt-Small y EfficientNetV2-S por votación suave.

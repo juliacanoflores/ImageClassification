@@ -2,7 +2,10 @@
 
 Automatic classification of real-estate scene images into 15 categories using transfer learning. Built as part of the Machine Learning II course at ICAI.
 
-**Final model:** ConvNeXt-Small — **96.47% val accuracy / 96.47% F1 macro** (best of 36 W&B sweep runs).
+**Repository:** [github.com/juliacanoflores/ImageClassification](https://github.com/juliacanoflores/ImageClassification)  
+**W&B project:** [javi_paula_julia/image-classification](https://wandb.ai/javi_paula_julia/image-classification)
+
+**Best model:** ConvNeXt-Small — **96.47% val accuracy / 96.47% F1 macro** (best of 36 W&B sweep runs).
 
 ## Scene Categories
 
@@ -13,7 +16,8 @@ Bedroom · Coast · Forest · Highway · Industrial · Inside city · Kitchen ·
 ```
 ┌─────────────────────────────────────────┐
 │   Streamlit Frontend  (Port 8501)       │
-│   - Image upload / URL input            │
+│   - Image upload / random validation    │
+│   - Model selector (ConvNeXt / EffNet)  │
 │   - Top-1 and Top-K prediction display  │
 │   - Confidence bar chart                │
 └────────────┬────────────────────────────┘
@@ -21,11 +25,13 @@ Bedroom · Coast · Forest · Highway · Industrial · Inside city · Kitchen ·
              ↓
 ┌─────────────────────────────────────────┐
 │   FastAPI Backend  (Port 8000)          │
-│   - ConvNeXt-Small inference            │
+│   - ConvNeXt-Small + EfficientNetV2-S   │
 │   - /predict  /predict-topk             │
 │   - /classes  /model-info  /health      │
 └─────────────────────────────────────────┘
 ```
+
+Both models are loaded at backend startup. The frontend lets you switch between them at inference time with no restart required.
 
 ## Quick Start
 
@@ -34,10 +40,10 @@ Bedroom · Coast · Forest · Highway · Industrial · Inside city · Kitchen ·
 pip install -r requirements.txt
 
 # 2. Start backend (terminal 1)
-python fastapi_backend.py
+python src/fastapi_backend.py
 
 # 3. Start frontend (terminal 2)
-streamlit run app.py
+streamlit run src/app.py
 
 # 4. Open http://localhost:8501
 ```
@@ -49,30 +55,33 @@ Static API reference: [docs/api.md](docs/api.md)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | Quick health check |
-| GET | `/health` | Detailed health (model_loaded, device) |
+| GET | `/` | Quick health check — lists loaded models |
+| GET | `/health` | Detailed health (models loaded, device) |
 | GET | `/classes` | List of 15 class labels |
-| GET | `/model-info` | Model metadata (architecture, input size, device) |
+| GET | `/model-info` | Available models, input size, device |
 | POST | `/predict` | Top-1 prediction from base64 image |
 | POST | `/predict-topk` | Top-k predictions with confidences |
 
 **POST /predict** — request body:
 ```json
-{ "image": "<base64-encoded image>", "filename": "photo.jpg" }
+{ "image": "<base64-encoded image>", "filename": "photo.jpg", "model": "ConvNeXt-Small" }
 ```
 
 **POST /predict-topk** — request body:
 ```json
-{ "image": "<base64-encoded image>", "k": 3 }
+{ "image": "<base64-encoded image>", "k": 3, "model": "EfficientNetV2-S" }
 ```
+
+`"model"` is optional and defaults to `"ConvNeXt-Small"`. Valid values: `"ConvNeXt-Small"`, `"EfficientNetV2-S"`.
 
 ## Project Structure
 
 ```
 ImageClassification/
-├── app.py                    # Streamlit frontend
-├── fastapi_backend.py        # FastAPI backend
-├── cnn.py                    # CNN class + training utilities
+├── src/
+│   ├── app.py                # Streamlit frontend
+│   ├── fastapi_backend.py    # FastAPI backend (both models)
+│   └── cnn.py                # CNN class + training utilities
 ├── requirements.txt          # Python dependencies
 │
 ├── scripts/
@@ -81,33 +90,33 @@ ImageClassification/
 │   └── analyze_results.py    # Parse results.csv and print comparison table
 │
 ├── models/
-│   └── convnext_base-8epoch.pt   # Trained model weights
+│   ├── ConvNeXt-Small.pt     # Best ConvNeXt-Small weights (96.47%)
+│   └── EfficientNetV2.pt     # Best EfficientNetV2-S weights (96.00%)
 │
 ├── dataset/
 │   ├── training/             # 2,985 training images (15 classes)
 │   └── validation/           # 1,500 validation images (15 classes)
 │
 ├── confusion_matrix/         # Per-model confusion matrices (CSV from W&B)
-├── imagenes/                 # Report figures
-├── docs/
-│   └── api.md                # Static API documentation
-└── report.tex                # Technical report (LaTeX)
+├── report/                   # LaTeX technical report
+└── docs/
+    └── api.md                # Static API documentation
 ```
 
-## Model Training & Experimentation
+## Models
 
-Training follows a **two-phase transfer learning** strategy applied to three architectures:
+| Model | Val Acc | F1 Macro | s/epoch | Notes |
+|-------|---------|----------|---------|-------|
+| **ConvNeXt-Small** | **96.47%** | **96.47%** | 99.9 | Default — highest accuracy |
+| EfficientNetV2-S | 96.00% | 96.00% | 43.5 | 2.3× faster, recommended for CPU/serverless |
+| Swin-T | 92.27% | 92.21% | 26.6 | Baseline only, not served |
 
-| Model | Val Acc | F1 Macro | s/epoch |
-|-------|---------|----------|---------|
-| **ConvNeXt-Small** | **96.47%** | **96.47%** | 99.9 |
-| EfficientNetV2-S | 96.00% | 96.00% | 43.5 |
-| Swin-T | 92.27% | 92.21% | 26.6 |
+Training uses a **two-phase transfer learning** strategy:
 
-**Phase 1 — Warmup:** backbone frozen, only the classification head is trained.  
-**Phase 2 — Fine-tuning:** last N backbone blocks unfrozen with discriminative learning rates (`lr_backbone` ≪ `lr_head`).
+- **Phase 1 — Warmup:** backbone frozen, only the classification head trains.
+- **Phase 2 — Fine-tuning:** last N backbone blocks unfrozen with discriminative learning rates (`lr_backbone` ≪ `lr_head`).
 
-Hyperparameter search used **Bayesian optimisation** via W&B sweeps (12 runs per model, 36 total). Key findings: AdamW outperforms SGD consistently; unfreezing 3 blocks is optimal; `weight_decay ≥ 0.05` improves generalisation.
+Hyperparameter search: **Bayesian optimisation** via W&B sweeps (12 runs per model, 36 total). Key findings: AdamW beats SGD consistently; unfreezing 3 blocks is optimal; `weight_decay ≥ 0.05` improves generalisation.
 
 ### Reproducing the sweep
 
@@ -115,7 +124,7 @@ Hyperparameter search used **Bayesian optimisation** via W&B sweeps (12 runs per
 # Create the 3 W&B sweeps (no GPU needed)
 python scripts/launch_sweeps.py --create-only
 
-# Run agents (requires GPU, run on Lightning AI or similar)
+# Run agents (requires GPU)
 python scripts/launch_sweeps.py --count 12
 
 # Single model
@@ -125,12 +134,11 @@ python scripts/launch_sweeps.py --model ConvNeXt-Small --count 12
 python scripts/launch_sweeps.py --sweep-id <id> --model <name> --count 12
 ```
 
-W&B project: [javi_paula_julia/image-classification](https://wandb.ai/javi_paula_julia/image-classification)
-
-### Reproducing a single run
+### Downloading trained weights
 
 ```bash
-python scripts/sweep_train.py  # smoke-test with default config (Swin-T)
+wandb artifact get javi_paula_julia/image-classification/best-ConvNeXt-Small:latest --root models/
+wandb artifact get javi_paula_julia/image-classification/best-EfficientNetV2-S:latest --root models/
 ```
 
 ## Reproducibility
@@ -154,13 +162,12 @@ python scripts/sweep_train.py  # smoke-test with default config (Swin-T)
 
 **Port already in use:**
 ```bash
-# macOS / Linux
 lsof -i :8000
 kill -9 <PID>
 ```
 
 **Model not found:**  
-Ensure `models/convnext_base-8epoch.pt` exists. Download from the W&B artifacts or retrain with `scripts/sweep_train.py`.
+Ensure `models/ConvNeXt-Small.pt` and `models/EfficientNetV2.pt` exist. Download with the `wandb artifact get` commands above.
 
 **Backend not responding:**
 ```bash

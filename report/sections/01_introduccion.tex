@@ -2,7 +2,9 @@
 
 En marketplaces inmobiliarios como Idealista o Zillow, la calidad y la correcta categorización visual de los anuncios influye directamente en la experiencia de los compradores y en la velocidad de venta. La categorización manual de imágenes a escala es costosa, inconsistente y no escalable: un agente inmobiliario puede subir decenas de fotos por propiedad, y clasificarlas correctamente requiere tiempo y criterio especializado.
 
-Este proyecto desarrolla un \textbf{servicio de clasificación automática de imágenes en 15 categorías de estancia} orientado a integrarse en el flujo de publicación de un marketplace. El usuario objetivo es el equipo técnico de la plataforma, que necesita una solución robusta, reproducible y con documentación suficiente para operar y mantener en producción. Con la implementación de esta solución, el valor esperado es tanto reducción del trabajo manual de clasificación como la mejora de la coherencia de los datos de catálogo.
+Este proyecto desarrolla un \textbf{servicio de clasificación automática de imágenes en 15 categorías de escena} orientado a integrarse en el flujo de publicación de un marketplace. El usuario objetivo es el equipo técnico de la plataforma, que necesita una solución robusta, reproducible y con documentación suficiente para operar y mantener en producción. El valor esperado es la reducción del trabajo manual de clasificación y la mejora de la coherencia del catálogo.
+
+Las \textbf{restricciones operativas} del entorno de producción condicionan el diseño del sistema: el servicio debe responder en tiempo real (latencia de inferencia del orden de milisegundos por imagen), debe poder ejecutarse sin GPU dedicada en escenarios de bajo coste (instancias serverless o CPU), y debe ser lo suficientemente preciso como para no requerir revisión manual sistemática.
 
 El pipeline completo está compuesto por tres componentes:
 \begin{enumerate}
@@ -13,4 +15,4 @@ El pipeline completo está compuesto por tres componentes:
 
 \subsection{Descripción del dataset}
 
-El dataset consta de \textbf{2\,985 imágenes de entrenamiento} y \textbf{1\,500 de validación} repartidas en 15 categorías de escenas interiores y exteriores: \textit{Bedroom, Coast, Forest, Highway, Industrial, Inside city, Kitchen, Living room, Mountain, Office, Open country, Store, Street, Suburb} y \textit{Tall building}. Las imágenes se redimensionan a $224\times224$\,px y las particiones están fijadas en el repositorio para garantizar comparaciones consistentes.
+El dataset consta de \textbf{2\,985 imágenes de entrenamiento} y \textbf{1\,500 de validación} repartidas en 15 categorías de escenas interiores y exteriores: \textit{Bedroom, Coast, Forest, Highway, Industrial, Inside city, Kitchen, Living room, Mountain, Office, Open country, Store, Street, Suburb} y \textit{Tall building}. 

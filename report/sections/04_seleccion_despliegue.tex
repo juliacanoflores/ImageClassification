@@ -28,6 +28,33 @@ El servicio de inferencia en producción está compuesto por dos componentes ind
 
 Al finalizar cada run, el script registra automáticamente en W\&B la matriz de confusión sobre el conjunto de validación, vinculada al checkpoint y configuración exactos de ese run. Esto permite un análisis de errores trazable y reproducible.
 
-Del análisis de las matrices de confusión se desprenden patrones consistentes: \textit{Highway} y \textit{Suburb} alcanzan el 100\% en los tres modelos, mientras que \textit{Open country} es la clase más difícil (ConvNeXt-Small: 87\%, Swin-T: 75\%), confundiéndose principalmente con \textit{Coast} y \textit{Mountain}. La mayor diferencia entre modelos aparece en clases interiores: Swin-T clasifica \textit{Bedroom} con solo un 78\% (16/100 confundidas con \textit{Living room}), frente al 94\%+ de ConvNeXt-Small y EfficientNetV2-S, lo que explica la brecha de 4~pp en F1 macro.
+La Tabla~\ref{tab:metrics-per-class} recoge precision, recall y F1 por clase para el mejor run de ConvNeXt-Small. \textit{Suburb} y \textit{Office} alcanzan F1 de 1.00 y 0.99 respectivamente; \textit{Open country} es la clase más débil (F1 = 0.88), confundiéndose principalmente con \textit{Coast} y \textit{Mountain} — escenas naturales sin elementos urbanos de referencia. El F1 macro de 0.96 supera ampliamente el umbral de éxito ($\geq 0.80$) y los errores residuales se concentran en pares de clases ambiguos incluso para un observador humano.
 
-El F1 macro de 96.47\% de ConvNeXt-Small supera ampliamente el umbral de éxito ($\geq 80\%$) y los errores residuales se concentran en pares de clases ambiguos incluso para un observador humano, lo que los hace aceptables para el caso de uso previsto.
+\begin{table}[H]
+    \centering
+    \caption{Métricas por clase — ConvNeXt-Small (mejor run, conjunto de validación).}
+    \label{tab:metrics-per-class}
+    \begin{tabular}{lccc}
+        \toprule
+        Clase & Precision & Recall & F1 \\
+        \midrule
+        Bedroom & 0.96 & 0.96 & 0.96 \\
+        Coast & 0.92 & 0.97 & 0.94 \\
+        Forest & 0.99 & 0.95 & 0.97 \\
+        Highway & 0.94 & 1.00 & 0.97 \\
+        Industrial & 0.98 & 0.98 & 0.98 \\
+        Inside city & 0.96 & 0.90 & 0.93 \\
+        Kitchen & 0.94 & 0.97 & 0.96 \\
+        Living room & 0.97 & 0.94 & 0.95 \\
+        Mountain & 0.99 & 0.97 & 0.98 \\
+        Office & 0.99 & 0.99 & 0.99 \\
+        \textit{Open country} & \textbf{0.90} & \textbf{0.87} & \textbf{0.88} \\
+        Store & 0.96 & 0.99 & 0.98 \\
+        Street & 0.95 & 0.95 & 0.95 \\
+        Suburb & 1.00 & 1.00 & 1.00 \\
+        Tall building & 0.98 & 0.98 & 0.98 \\
+        \midrule
+        \textbf{Macro avg} & \textbf{0.96} & \textbf{0.96} & \textbf{0.96} \\
+        \bottomrule
+    \end{tabular}
+\end{table}

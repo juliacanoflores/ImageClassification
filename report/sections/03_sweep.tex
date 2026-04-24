@@ -26,8 +26,6 @@ La Tabla~\ref{tab:sweep-resultados} recoge la mejor configuración encontrada pa
     \label{fig:training-curves}
 \end{figure}
 
-La Tabla~\ref{tab:top-runs} muestra los cinco mejores runs por modelo para ilustrar la profundidad de la búsqueda y la estabilidad de las configuraciones ganadoras.
-
 \begin{table}[H]
     \centering
     \caption{Mejor configuración y métricas finales por modelo (36 runs totales).}
@@ -43,43 +41,6 @@ La Tabla~\ref{tab:top-runs} muestra los cinco mejores runs por modelo para ilust
     \end{tabular}
 \end{table}
 
-\begin{table}[H]
-    \centering
-    \caption{Top 5 runs por modelo (val\_acc descendente).}
-    \label{tab:top-runs}
-    \begin{tabular}{llccc}
-        \toprule
-        Modelo & Configuración & Val Acc & F1 Macro & Optim. \\
-        \midrule
-        ConvNeXt-S & lr=6.4e-3, wd=0.1, unfreeze=3, ft=10 & 96.47\% & 96.47\% & AdamW \\
-                   & lr=6.3e-3, wd=0.1, unfreeze=3, ft=10 & 96.13\% & 96.12\% & AdamW \\
-                   & lr=6.0e-3, wd=0.1, unfreeze=3, ft=10 & 95.93\% & 95.93\% & AdamW \\
-                   & lr=2.0e-3, wd=0.05, unfreeze=3, ft=10 & 95.87\% & 95.85\% & AdamW \\
-                   & lr=1.0e-2, wd=0.05, unfreeze=3, ft=10 & 92.67\% & 92.74\% & SGD   \\
-        \midrule
-        EffNetV2-S & lr=1.8e-4, wd=0.1, unfreeze=3, ft=8  & 96.00\% & 96.00\% & AdamW \\
-                   & lr=5.2e-4, wd=0.1, unfreeze=3, ft=8  & 96.00\% & 96.01\% & AdamW \\
-                   & lr=5.1e-4, wd=0.05, unfreeze=3, ft=8 & 95.67\% & 95.67\% & AdamW \\
-                   & lr=2.0e-4, wd=0.05, unfreeze=2, ft=5 & 95.07\% & 95.06\% & AdamW \\
-                   & lr=2.0e-4, wd=0.05, unfreeze=3, ft=5 & 94.60\% & 94.60\% & AdamW \\
-        \midrule
-        Swin-T     & lr=2.4e-3, wd=0.05, unfreeze=2, ft=8 & 92.27\% & 92.21\% & AdamW \\
-                   & lr=7.9e-3, wd=0.05, unfreeze=2, ft=8 & 92.13\% & 92.12\% & AdamW \\
-                   & lr=1.7e-3, wd=0.01, unfreeze=1, ft=5 & 92.13\% & 92.08\% & AdamW \\
-                   & lr=2.4e-3, wd=0.05, unfreeze=2, ft=8 & 92.00\% & 91.95\% & AdamW \\
-                   & lr=1.2e-3, wd=0.01, unfreeze=1, ft=8 & 92.00\% & 91.94\% & AdamW \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
 \subsection{Patrones observados}
 
-\textbf{Optimizador:} AdamW dominó en los tres modelos de forma consistente. Los runs con SGD obtuvieron resultados notablemente peores en todos los casos (hasta $-17$ pp en ConvNeXt-Small). La capacidad de AdamW de adaptar la tasa de aprendizaje por parámetro resulta especialmente ventajosa en fine-tuning de redes profundas preentrenadas, donde distintas capas requieren magnitudes de actualización muy diferentes.
-
-\textbf{Capas descongeladas:} \textit{unfreeze=3} fue óptimo para ConvNeXt-Small y EfficientNetV2-S; Swin-T convergió mejor con \textit{unfreeze=2}. Las configuraciones con \textit{unfreeze=0} (solo cabeza, sin fine-tuning) mostraron una caída pronunciada de rendimiento (40--80 pp), confirmando que el fine-tuning parcial del backbone es imprescindible para adaptar las representaciones a nuestro problema.
-
-\textbf{Regularización:} weight\_decay $\geq 0.05$ con AdamW produjo sistemáticamente los mejores modelos, especialmente combinado con learning rates moderados o altos. Una regularización más fuerte controla el sobreajuste que aparece al descongelar capas del backbone con datos de entrenamiento relativamente limitados (2\,985 imágenes).
-
-\textbf{Estabilidad:} Swin-T mostró mayor consistencia entre runs (rango 88\%--92\%), mientras que ConvNeXt-Small y EfficientNetV2-S presentaron mayor varianza ($\sim$15 pp de rango), siendo muy sensibles al optimizador y al número de capas descongeladas.
-
-\textbf{Inversión del ranking:} en el baseline, Swin-T lideraba con 91.1\%. Tras el sweep, ConvNeXt-Small y EfficientNetV2-S lo superan claramente (96\% vs. 92\%), evidenciando que estas arquitecturas tienen mayor capacidad potencial que solo se activa con fine-tuning de capas superiores.
+AdamW dominó de forma consistente en los tres modelos; los runs con SGD fueron hasta 17~pp peores. Descongelar \textit{unfreeze=3} bloques fue óptimo para ConvNeXt-Small y EfficientNetV2-S (\textit{unfreeze=2} para Swin-T), mientras que \textit{unfreeze=0} provocó caídas de 40--80~pp, confirmando que el fine-tuning del backbone es imprescindible. \texttt{weight\_decay}~$\geq 0.05$ mejoró sistemáticamente la generalización al entrenar con datos limitados. Swin-T fue el modelo más estable entre runs (rango 88--92\%), mientras que ConvNeXt-Small y EfficientNetV2-S mostraron mayor varianza pero mayor techo de rendimiento, superando al baseline de Swin-T en cuanto se activa el fine-tuning de capas superiores.
